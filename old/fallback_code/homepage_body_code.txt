@@ -1,0 +1,178 @@
+<script>
+// ============================================
+// EMAIL POPUP CONTROLLER
+// ============================================
+
+(function() {
+  'use strict';
+  
+  const POPUP_STORAGE_KEY = 'dematerialized_popup_shown';
+  const POPUP_DELAY = 5000; // 5 seconds delay before showing
+  
+  // DOM Elements
+  let overlay, popup, closeBtn, form, emailInput, submitBtn, successEl;
+  
+  // Initialize DOM references
+  function initElements() {
+    overlay = document.getElementById('emailPopupOverlay');
+    popup = document.getElementById('emailPopup');
+    closeBtn = popup?.querySelector('.popup-close');
+    form = document.getElementById('emailForm');
+    emailInput = document.getElementById('emailInput');
+    submitBtn = document.getElementById('submitBtn');
+    successEl = document.getElementById('popupSuccess');
+  }
+  
+  // Open popup
+  function openEmailPopup() {
+    if (!overlay || !popup) return;
+    
+    overlay.classList.add('active');
+    popup.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  
+  // Close popup
+  function closeEmailPopup() {
+    if (!overlay || !popup) return;
+    
+    overlay.classList.remove('active');
+    popup.classList.remove('active');
+    document.body.style.overflow = '';
+    
+    // Mark as shown so it doesn't appear again this session
+    sessionStorage.setItem(POPUP_STORAGE_KEY, 'true');
+  }
+  
+  // Handle form submission
+  async function handleEmailSubmit(event) {
+    event.preventDefault();
+    
+    const email = emailInput.value;
+    
+    // Disable button and show loading
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+    
+    try {
+      // POST to mailing list subscribe endpoint
+      const response = await fetch(`${window.API_BASE_URL}/mailing-list/subscribe`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Subscription failed');
+      }
+      
+      // Show success state
+      form.classList.add('hidden');
+      successEl.classList.add('active');
+      
+      // Store in localStorage so popup doesn't show again
+      localStorage.setItem(POPUP_STORAGE_KEY, 'true');
+      
+      // Close popup after 3 seconds
+      setTimeout(() => {
+        closeEmailPopup();
+        
+        // Reset form for next time
+        setTimeout(() => {
+          form.classList.remove('hidden');
+          successEl.classList.remove('active');
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit';
+          emailInput.value = '';
+        }, 500);
+      }, 3000);
+      
+    } catch (error) {
+      console.error('Email signup error:', error);
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit';
+      
+      // Show user-friendly error message
+      if (error.message.toLowerCase().includes('already')) {
+        alert('This email is already subscribed!');
+      } else {
+        alert('Something went wrong. Please try again.');
+      }
+    }
+  }
+  
+  // Auto-show popup after delay (if not already shown)
+  function initPopup() {
+    // Check if already shown in this session or previously subscribed
+    const alreadyShown = sessionStorage.getItem(POPUP_STORAGE_KEY);
+    const alreadySubscribed = localStorage.getItem(POPUP_STORAGE_KEY);
+    
+    if (alreadyShown || alreadySubscribed) {
+      console.log('📧 [Popup] Already shown or subscribed, skipping');
+      return;
+    }
+    
+    // Show popup after delay
+    setTimeout(() => {
+      console.log('📧 [Popup] Showing email popup');
+      openEmailPopup();
+    }, POPUP_DELAY);
+  }
+  
+  // Bind event listeners
+  function bindEvents() {
+    // Close on overlay click
+    if (overlay) {
+      overlay.addEventListener('click', closeEmailPopup);
+    }
+    
+    // Close on X button click
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeEmailPopup);
+    }
+    
+    // Form submission
+    if (form) {
+      form.addEventListener('submit', handleEmailSubmit);
+    }
+    
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && popup?.classList.contains('active')) {
+        closeEmailPopup();
+      }
+    });
+  }
+  
+  // Initialize when DOM is ready
+  function init() {
+    initElements();
+    bindEvents();
+    
+    // Auto-show popup after delay
+    initPopup();
+  }
+  
+  // Run init when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+  
+  // Expose functions globally for manual triggering
+  window.EmailPopup = {
+    open: openEmailPopup,
+    close: closeEmailPopup,
+    init: initPopup
+  };
+  
+  // Legacy support
+  window.openEmailPopup = openEmailPopup;
+  window.closeEmailPopup = closeEmailPopup;
+  
+})();
+</script>

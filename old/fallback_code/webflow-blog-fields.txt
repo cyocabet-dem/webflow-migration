@@ -1,0 +1,16 @@
+Webflow Blog Fields
+
+Title
+Slug
+Post body
+Post summary
+Main image
+Thumbnail image
+Date
+Authors
+Locale
+Sitemap indexing
+Blog ID
+Blog created
+Last edited
+Last published

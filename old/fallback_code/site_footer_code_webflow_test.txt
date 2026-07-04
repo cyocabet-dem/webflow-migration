@@ -1,0 +1,15 @@
+<script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/cyocabet-dem/demat-webflow@test/components.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/cyocabet-dem/demat-webflow@test/auth.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/cyocabet-dem/demat-webflow@686173fd6d08ad994dac4a03ee47d6a41ae81128/site-wide-footer.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/cyocabet-dem/demat-webflow@test/purchase-cart.js"></script>
+
+<!-- Google Tag Manager (noscript) PROD -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-56PZW3LP"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
+<!-- Google Tag Manager (noscript) TEST -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-556SMQSF"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->

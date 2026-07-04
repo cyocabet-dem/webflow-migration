@@ -1,0 +1,266 @@
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script>
+const { createApp } = Vue;
+
+// Locale helper (prefers shared helper from site-wide-footer.js)
+function isNL() {
+  if (window.DematI18n && window.DematI18n.isNL) return window.DematI18n.isNL();
+  return (document.documentElement.lang || '').toLowerCase().indexOf('nl') === 0;
+}
+
+// Status configuration - matches pdp.js (now with Dutch labels)
+const ITEM_STATUS_CONFIG = {
+  available: { canAddToCart: true, buttonText: null, buttonTextNL: null, buttonClass: '' },
+  rented: { canAddToCart: false, buttonText: 'Rented Out', buttonTextNL: 'verhuurd', buttonClass: 'status-rented' },
+  reserved: { canAddToCart: false, buttonText: 'Reserved', buttonTextNL: 'gereserveerd', buttonClass: 'status-reserved' },
+  returned: { canAddToCart: false, buttonText: 'Returning Soon', buttonTextNL: 'binnenkort terug', buttonClass: 'status-returned' },
+  purchased: { canAddToCart: false, buttonText: 'Purchased', buttonTextNL: 'gekocht', buttonClass: 'status-purchased' },
+  sold: { canAddToCart: false, buttonText: 'Sold', buttonTextNL: 'verkocht', buttonClass: 'status-sold' },
+  damaged: { canAddToCart: false, buttonText: 'Unavailable', buttonTextNL: 'niet beschikbaar', buttonClass: 'status-unavailable' },
+  retired: { canAddToCart: false, buttonText: 'No Longer Available', buttonTextNL: 'niet meer beschikbaar', buttonClass: 'status-retired' }
+};
+
+const DEFAULT_STATUS_CONFIG = {
+  canAddToCart: false,
+  buttonText: 'Unavailable',
+  buttonTextNL: 'niet beschikbaar',
+  buttonClass: 'status-unavailable'
+};
+
+// UI strings the Vue app computes at runtime
+const T = {
+  removeFromCart: { en: 'Remove From Cart', nl: 'uit winkelmand' },
+  addToCart:      { en: 'Add To Cart',       nl: 'in winkelmand' },
+  cartFull:       { en: 'Cart Full',         nl: 'winkelmand vol' },
+  cartFullAlert:  { en: 'Your cart is full (maximum 10 items).', nl: 'je winkelmand is vol (maximaal 10 items).' },
+  loadError:      { en: 'Failed to load your wishlist. Please try again.', nl: 'je wishlist kon niet worden geladen. probeer het opnieuw.' }
+};
+function t(key) {
+  const e = T[key];
+  return e ? (isNL() ? e.nl : e.en) : '';
+}
+
+function getStatusConfig(status) {
+  const s = (status || '').toLowerCase().trim();
+  // If status is empty/missing, default to 'available'
+  if (!s) {
+    return ITEM_STATUS_CONFIG['available'];
+  }
+  return ITEM_STATUS_CONFIG[s] || DEFAULT_STATUS_CONFIG;
+}
+
+// Resolves a status config's label to the active locale
+function statusText(config) {
+  return (isNL() && config.buttonTextNL) ? config.buttonTextNL : config.buttonText;
+}
+
+createApp({
+  data() {
+    return {
+      loading: true,
+      isAuthenticated: false,
+      error: null,
+      items: [],
+      cartItems: [],
+      sizeLabel: isNL() ? 'maat' : 'size'
+    };
+  },
+  
+  async mounted() {
+    console.log('🎯 [Wishlist] Vue app mounted');
+    this.updateCartState();
+    await this.waitForAuth();
+    this.isAuthenticated = await window.auth0Client.isAuthenticated();
+    console.log('🔐 [Wishlist] Is authenticated:', this.isAuthenticated);
+    
+    if (!this.isAuthenticated) {
+      this.loading = false;
+      return;
+    }
+    await this.loadWishlist();
+  },
+  
+  methods: {
+    waitForAuth() {
+      return new Promise((resolve) => {
+        const check = setInterval(() => {
+          if (window.auth0Client) {
+            clearInterval(check);
+            resolve();
+          }
+        }, 100);
+        setTimeout(() => {
+          clearInterval(check);
+          resolve();
+        }, 10000);
+      });
+    },
+    
+    async signIn() {
+      if (window.auth0Client) {
+        await window.auth0Client.loginWithRedirect();
+      }
+    },
+    
+    async createAccount() {
+      if (window.auth0Client) {
+        await window.auth0Client.loginWithRedirect({
+          authorizationParams: { screen_hint: 'signup' }
+        });
+      }
+    },
+    
+    updateCartState() {
+      if (window.CartManager) {
+        this.cartItems = window.CartManager.getCart().map(item => item.id);
+      }
+    },
+    
+    isInCart(itemId) {
+      return this.cartItems.includes(itemId);
+    },
+    
+    getItemStatusConfig(item) {
+      const status = item.status || 'available';
+      return getStatusConfig(status);
+    },
+    
+    canAddToCart(item) {
+      return this.getItemStatusConfig(item).canAddToCart;
+    },
+    
+    getButtonText(item) {
+      const config = this.getItemStatusConfig(item);
+      if (!config.canAddToCart) {
+        return statusText(config);
+      }
+      if (this.isInCart(item.id)) {
+        return t('removeFromCart');
+      }
+      if (window.CartManager && window.CartManager.getCartCount() >= window.CartManager.MAX_ITEMS) {
+        return t('cartFull');
+      }
+      return t('addToCart');
+    },
+    
+    getButtonClasses(item) {
+      const config = this.getItemStatusConfig(item);
+      const classes = [];
+      if (!config.canAddToCart) {
+        classes.push('status-disabled', config.buttonClass);
+      } else if (this.isInCart(item.id)) {
+        classes.push('in-cart');
+      }
+      return classes;
+    },
+    
+    isButtonDisabled(item) {
+      const config = this.getItemStatusConfig(item);
+      if (!config.canAddToCart) {
+        return true;
+      }
+      if (window.CartManager && 
+          window.CartManager.getCartCount() >= window.CartManager.MAX_ITEMS && 
+          !this.isInCart(item.id)) {
+        return true;
+      }
+      return false;
+    },
+    
+async toggleCart(item) {
+  const config = this.getItemStatusConfig(item);
+  if (!config.canAddToCart) {
+    console.log('⚠️ [Wishlist] Item not available for cart:', item.status);
+    return;
+  }
+  
+  if (this.isInCart(item.id)) {
+    await window.CartManager.removeFromCart(item.id);
+    console.log('✅ [Wishlist] Removed from cart:', item.name);
+  } else {
+    const cartItem = {
+      id: item.id,
+      sku: item.sku,
+      name: item.name,
+      brand: item.brand?.brand_name || item.brand || '',
+      size: item.size?.size || item.size || '',
+      frontImage: this.getFrontImage(item)
+    };
+    
+    const result = await window.CartManager.addToCart(cartItem);
+    if (result.success) {
+      console.log('✅ [Wishlist] Added to cart:', item.name);
+    } else if (result.reason === 'max_items') {
+      alert(t('cartFullAlert'));
+      return;
+    }
+  }
+  this.updateCartState();
+},
+    
+    async loadWishlist() {
+      try {
+        console.log('📡 [Wishlist] Loading wishlist...');
+        const token = await window.auth0Client.getTokenSilently();
+        
+        const response = await fetch(`${window.API_BASE_URL}/private_clothing_items/wishlist/clothing_items`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        const data = await response.json();
+        this.items = Array.isArray(data) ? data : (data.items || data.clothing_items || []);
+        console.log('✅ [Wishlist] Loaded', this.items.length, 'items');
+      } catch (err) {
+        console.error('❌ [Wishlist] Error loading wishlist:', err);
+        this.error = t('loadError');
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    getFrontImage(item) {
+      const images = item.images || [];
+      const front = images.find(img => img.image_type === 'front') || images[0];
+      return front ? front.object_url : '';
+    },
+    
+    getBackImage(item) {
+      const images = item.images || [];
+      const back = images.find(img => img.image_type === 'back');
+      return back ? back.object_url : this.getFrontImage(item);
+    },
+    
+    async removeFromWishlist(itemId) {
+      try {
+        console.log('➖ [Wishlist] Removing item:', itemId);
+        const token = await window.auth0Client.getTokenSilently();
+        
+        const response = await fetch(`${window.API_BASE_URL}/private_clothing_items/wishlist/${itemId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (response.ok) {
+          this.items = this.items.filter(item => item.id !== itemId);
+          console.log('✅ [Wishlist] Item removed');
+        }
+      } catch (err) {
+        console.error('❌ [Wishlist] Error removing item:', err);
+      }
+    },
+    
+    goToItem(sku) {
+      const base = isNL() ? '/nl/product' : '/product';
+      window.location.href = `${base}?sku=${encodeURIComponent(sku)}`;
+    }
+  }
+}).mount('#wishlist-app');
+</script>
