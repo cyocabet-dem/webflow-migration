@@ -1,1 +1,0 @@
-<script src="https://cdn.jsdelivr.net/gh/cyocabet-dem/demat-webflow@a957a4f343199d1bff2b115b7328392d4f6d0c7c/rentals.js"></script>
