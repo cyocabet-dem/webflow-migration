@@ -1,0 +1,8 @@
+Webflow Authors Fields
+
+Name
+Slug
+Bio
+Bio summary
+Picture
+Email
