@@ -1,0 +1,46 @@
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const headers = document.querySelectorAll('.div-hiw-step-title');
+  
+  headers.forEach(header => {
+    header.addEventListener('click', function() {
+      const content = this.closest('.div-hiw-step-title').nextElementSibling;
+      const downIcon = this.querySelector('.icon-chevron-down-32px');
+      const upIcon = this.querySelector('.icon-chevron-up-32px');
+      const isCurrentlyOpen = content.classList.contains('open');
+      
+      // Close all steps and reset all icons
+      document.querySelectorAll('.div-hiw-step-content').forEach(c => {
+        c.classList.remove('open');
+        c.style.display = 'none';
+      });
+      document.querySelectorAll('.icon-chevron-down-32px').forEach(icon => {
+        icon.style.display = 'block';
+      });
+      document.querySelectorAll('.icon-chevron-up-32px').forEach(icon => {
+        icon.style.display = 'none';
+      });
+      
+      // If the clicked one wasn't open, open it
+      if (!isCurrentlyOpen) {
+        content.classList.add('open');
+        content.style.display = 'flex';
+        downIcon.style.display = 'none';
+        upIcon.style.display = 'block';
+      }
+    });
+  });
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const closeBtn = document.querySelector('.banner-close');
+  const banner = document.querySelector('.div-offer-banner');
+  
+  if (closeBtn && banner) {
+    closeBtn.addEventListener('click', function() {
+      banner.style.display = 'none';
+    });
+  }
+});
+</script>

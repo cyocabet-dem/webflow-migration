@@ -1,0 +1,283 @@
+<!-- [Attributes by Finsweet] CMS Slider -->
+<script async src="https://cdn.jsdelivr.net/npm/@finsweet/attributes-cmsslider@1/cmsslider.js"></script>
+
+<style>
+/* ============================================
+   EMAIL POPUP STYLES
+   ============================================ */
+
+/* CSS Variables - remove if already defined in your site */
+:root {
+  --purple: #4b073f;
+  --purple-dark: #a92296;
+  --gray-dark: #24282d;
+  --gray-medium: #46535e;
+  --gray-light: #ced5da;
+  --gray-very-light: #f6f8f9;
+  --pink-light: #fff4fe;
+  --white: #ffffff;
+  --radius: 20px;
+}
+
+/* Popup Overlay */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.popup-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Popup Container */
+.popup-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--white);
+  border-radius: var(--radius) var(--radius) 0 0;
+  z-index: 9999;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.popup-container.active {
+  transform: translateY(0);
+}
+
+/* Close Button */
+.popup-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s ease;
+}
+
+.popup-close:hover {
+  background: var(--gray-very-light);
+}
+
+.popup-close svg {
+  width: 24px;
+  height: 24px;
+  stroke: var(--gray-medium);
+  stroke-width: 2;
+}
+
+/* Popup Header */
+.popup-header {
+  text-align: center;
+  padding: 12px 24px 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--gray-medium);
+}
+
+/* Popup Content */
+.popup-content {
+  padding: 40px 24px 48px;
+  max-width: 500px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* Icon/Illustration */
+.popup-icon {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.popup-icon svg {
+  width: 64px;
+  height: 64px;
+}
+
+/* Heading */
+.popup-heading {
+  font-size: clamp(1.5rem, 4vw, 1.75rem);
+  font-weight: 600;
+  color: var(--gray-dark);
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+
+/* Description */
+.popup-description {
+  font-size: 1rem;
+  color: var(--gray-medium);
+  margin-bottom: 32px;
+  letter-spacing: 0.3px;
+}
+
+/* Form */
+.popup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.popup-form.hidden {
+  display: none;
+}
+
+/* Input Group */
+.popup-input-group {
+  position: relative;
+}
+
+.popup-input-group input {
+  width: 100%;
+  padding: 16px 0;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 1rem;
+  color: var(--gray-dark);
+  border: none;
+  border-bottom: 1px solid var(--gray-light);
+  background: transparent;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.popup-input-group input::placeholder {
+  color: var(--gray-medium);
+}
+
+.popup-input-group input:focus {
+  border-bottom-color: var(--purple);
+}
+
+/* Submit Button */
+.popup-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto;
+  padding: 16px 48px;
+  background: var(--purple);
+  color: var(--white);
+  border: none;
+  border-radius: 50px;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.popup-submit:hover {
+  background: var(--purple-dark);
+  transform: translateY(-1px);
+}
+
+.popup-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Disclaimer */
+.popup-disclaimer {
+  font-size: 0.75rem;
+  color: var(--gray-medium);
+  line-height: 1.6;
+  margin-top: 24px;
+}
+
+.popup-disclaimer a {
+  color: var(--purple);
+  text-decoration: underline;
+}
+
+.popup-disclaimer a:hover {
+  color: var(--purple-dark);
+}
+
+/* Success State */
+.popup-success {
+  display: none;
+  text-align: center;
+  padding: 20px 0;
+}
+
+.popup-success.active {
+  display: block;
+}
+
+.popup-success-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  background: var(--pink-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.popup-success-icon svg {
+  width: 32px;
+  height: 32px;
+  stroke: var(--purple);
+  stroke-width: 2;
+}
+
+.popup-success h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--gray-dark);
+  margin-bottom: 8px;
+}
+
+.popup-success p {
+  font-size: 0.9375rem;
+  color: var(--gray-medium);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .popup-content {
+    padding: 32px 20px 40px;
+  }
+
+  .popup-icon {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 20px;
+  }
+
+  .popup-icon svg {
+    width: 48px;
+    height: 48px;
+  }
+}
+</style>

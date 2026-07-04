@@ -1,0 +1,271 @@
+document.addEventListener('DOMContentLoaded', function() {
+
+  // --- Auth0 Configuration ---
+  const auth0Config = {
+    domain: 'dev-rgs24jdzcvdydd77.eu.auth0.com',
+    clientId: 'o7E5s7NjzEIh9HEZqYTdgcmL8ev7QorV',
+    cacheLocation: 'localstorage',
+    useRefreshTokens: true
+  };
+  const API_URL = window.API_BASE_URL || 'https://api.dematerialized.nl';
+  window.auth0Client = null;
+
+  async function initializeAuth0() {
+    try {
+      window.auth0Client = await auth0.createAuth0Client({
+        domain: auth0Config.domain,
+        clientId: auth0Config.clientId,
+        
+        authorizationParams: {
+          redirect_uri: window.location.origin + '/',
+          audience: 'https://api.dematerialized.nl/'
+        },
+
+        cacheLocation: auth0Config.cacheLocation,
+        useRefreshTokens: auth0Config.useRefreshTokens
+      });
+      
+      
+      // Handle redirect
+      const query = window.location.search;
+      if (query.includes("code=") && query.includes("state=")) {
+        await window.auth0Client.handleRedirectCallback();
+        
+        // Get the return path that was stored before login
+        const returnPath = sessionStorage.getItem('auth_return_path') || '/';
+        sessionStorage.removeItem('auth_return_path');
+        
+        
+        // Clean up URL and redirect to return path
+        window.history.replaceState({}, document.title, returnPath);
+        
+        // After successful login, check user status and redirect if needed (ONE TIME)
+        await checkUserStatusAndRedirect();
+      }
+      
+      // Update UI
+      const isAuthenticated = await window.auth0Client.isAuthenticated();
+      updateUI(isAuthenticated);
+      
+      if (isAuthenticated) {
+        const user = await window.auth0Client.getUser();
+        displayUserInfo(user);
+        
+        // Check user status on page load (for onboarding modal only - NO redirects)
+        await checkUserStatus();
+      }
+    } catch (error) {
+      console.error('Auth0 initialization error:', error);
+    }
+  }
+
+  // ============================================
+  // CHECK USER STATUS (every page load, already authenticated)
+  // Only shows onboarding modal. No redirects.
+  // ============================================
+  async function checkUserStatus() {
+    try {
+      // Pages where we skip the onboarding modal
+      const skipPages = ['/onboarding', '/complete-your-profile', '/profile', '/memberships', '/error-membership-signup'];
+      if (skipPages.includes(window.location.pathname)) {
+        return;
+      }
+
+      const token = await window.auth0Client.getTokenSilently();
+      const response = await fetch(`${API_URL}/users/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to fetch user status:', response.status);
+        return;
+      }
+      
+      const userData = await response.json();
+      
+      // Store user data globally for easy access
+      window.currentUserData = userData;
+      
+   const hasActiveMembership = !!userData.stripe_id;
+const hasCompletedProfile = userData.provided_information;
+const modalDismissed = sessionStorage.getItem('onboarding_modal_dismissed') === 'true';
+
+// Only show onboarding modal if user HAS a membership but hasn't completed profile
+if (hasActiveMembership && !hasCompletedProfile && !modalDismissed) {
+        setTimeout(function() { showOnboardingModal(); }, 500);
+      }
+      
+      // Update display with first name
+      displayFirstName();
+      
+    } catch (error) {
+      console.error('Error checking user status:', error);
+    }
+  }
+
+  // ============================================
+  // CHECK USER STATUS AFTER LOGIN (runs ONCE after Auth0 callback)
+  // No membership → redirect to /memberships
+  // ============================================
+  async function checkUserStatusAndRedirect() {
+    try {
+      const token = await window.auth0Client.getTokenSilently();
+      const response = await fetch(`${API_URL}/users/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (!response.ok) {
+        console.error('Failed to fetch user status:', response.status);
+        return;
+      }
+      
+      const userData = await response.json();
+      
+      // Store user data globally
+      window.currentUserData = userData;
+      
+      const hasActiveMembership = !!userData.stripe_id;
+      
+      if (!hasActiveMembership) {
+        window.location.href = '/memberships';
+        return;
+      }
+      
+      
+      // Update display with first name
+      displayFirstName();
+      
+    } catch (error) {
+      console.error('Error checking user status:', error);
+    }
+  }
+
+  // Show onboarding modal
+  function showOnboardingModal() {
+    if (typeof window.openOnboardingModal === 'function') {
+      window.openOnboardingModal();
+    }
+  }
+
+  // Update UI
+  function updateUI(isAuthenticated) {
+    const loggedInElements = document.querySelectorAll('[data-auth="logged-in"]');
+    const loggedOutElements = document.querySelectorAll('[data-auth="logged-out"]');
+    
+     loggedInElements.forEach(el => {
+    el.style.display = isAuthenticated ? 'block' : 'none';
+  });
+  
+  loggedOutElements.forEach(el => {
+    el.style.display = !isAuthenticated ? 'block' : 'none';
+  });
+  }
+
+  // Display user info
+  function displayUserInfo(user) {
+    if (!user) return;
+    document.querySelectorAll('[data-auth="user-name"]').forEach(el => {
+      el.textContent = user.name || user.email || 'User';
+    });
+    document.querySelectorAll('[data-auth="user-email"]').forEach(el => {
+      el.textContent = user.email || '';
+    });
+    document.querySelectorAll('[data-auth="user-picture"]').forEach(el => {
+      if (user.picture) el.src = user.picture;
+    });
+  }
+
+  // Display first name from API data
+  function displayFirstName() {
+    if (!window.currentUserData) return;
+    
+    const attributes = window.currentUserData.attributes || [];
+    const firstNameAttr = attributes.find(attr => attr.key === 'first_name');
+    const firstName = firstNameAttr?.value || '';
+    
+    if (firstName) {
+      document.querySelectorAll('[data-auth="user-name"]').forEach(el => {
+        el.textContent = firstName;
+      });
+    }
+  }
+
+  // Login - Store current path before redirecting
+  async function login() {
+    if (!window.auth0Client) return;
+    
+    // Store current path so we can return here after login
+    sessionStorage.setItem('auth_return_path', window.location.pathname);
+    
+    await window.auth0Client.loginWithRedirect();
+  }
+
+  // Logout
+  async function logout() {
+    if (!window.auth0Client) return;
+    sessionStorage.removeItem('onboarding_modal_dismissed');
+    await window.auth0Client.logout({
+      logoutParams: {
+        returnTo: window.location.origin + '/'
+      }
+    });
+  }
+
+  // API Calling Function
+  async function callApi() {
+    try {
+      const token = await window.auth0Client.getTokenSilently();
+      const response = await fetch(`${API_URL}/users/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.detail || "API failed");
+      alert("API call successful! Check the console.");
+    } catch (e) {
+      console.error("API call failed", e);
+      alert(`API call failed: ${e.message}`);
+    }
+  }
+
+  // Initialize and connect buttons
+  initializeAuth0();
+  
+  setTimeout(() => {
+    // Connect login/logout by data-attribute
+    document.querySelectorAll('[data-auth-action="login"]').forEach(btn => {
+      btn.addEventListener('click', e => (e.preventDefault(), login()));
+    });
+    document.querySelectorAll('[data-auth-action="logout"]').forEach(btn => {
+      btn.addEventListener('click', e => (e.preventDefault(), logout()));
+    });
+
+    const loginBtn = document.getElementById('btn-login');
+    if (loginBtn) loginBtn.addEventListener('click', e => (e.preventDefault(), login()));
+
+    const logoutBtn = document.getElementById('btn-logout');
+    if (logoutBtn) logoutBtn.addEventListener('click', e => (e.preventDefault(), logout()));
+
+    const apiBtn = document.getElementById('btn-call-api');
+    if (apiBtn) apiBtn.addEventListener('click', e => (e.preventDefault(), callApi()));
+
+  }, 100);
+  
+  // Debug helper
+  window.debugAuth = async function() { 
+    if (window.auth0Client) {
+      const isAuth = await window.auth0Client.isAuthenticated();
+      if (isAuth) {
+        const user = await window.auth0Client.getUser();
+        try {
+          const token = await window.auth0Client.getTokenSilently();
+        } catch(e) {
+          console.error("Could not get token", e);
+        }
+      }
+    }
+  };
+  
+  // Expose check function globally
+  window.checkUserStatus = checkUserStatus;
+  
+});

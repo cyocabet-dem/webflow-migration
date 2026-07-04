@@ -1,0 +1,6 @@
+<style>
+/* Hide account page initially on non-mobile */
+body.checking-screen-size {
+  opacity: 0;
+}
+</style>

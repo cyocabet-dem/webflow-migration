@@ -1,0 +1,27 @@
+name: Purge jsdelivr CDN cache
+
+on:
+  push:
+    branches:
+      - test
+      - main
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      
+      - name: Purge jsdelivr cache
+        run: |
+          BRANCH=${GITHUB_REF#refs/heads/}
+          echo "Purging cache for branch: $BRANCH"
+          
+          # Find all JS and CSS files and purge each
+          for file in $(find . -maxdepth 1 -type f \( -name "*.js" -o -name "*.css" \) | sed 's|./||'); do
+            echo "Purging: $file"
+            curl -s "https://purge.jsdelivr.net/gh/cyocabet-dem/demat-webflow@${BRANCH}/${file}"
+          done
+          
+          echo "✅ Cache purged for all JS/CSS files"

@@ -1,0 +1,68 @@
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ProfilePage",
+  "name": "My Rentals",
+  "url": "/my-rentals",
+  "inLanguage": "en",
+  "description": "User account page for managing clothing rentals and rental history",
+  "mainEntity": {
+    "@type": "WebApplication",
+    "name": "Dematerialized Rental Management",
+    "applicationCategory": "LifestyleApplication",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "category": "Clothing Rental Service"
+    },
+    "featureList": [
+      "View current rentals",
+      "Access rental history",
+      "Manage rented clothing items",
+      "Track reservations"
+    ]
+  },
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "Dematerialized",
+    "url": "/",
+    "description": "Sustainable fashion rental platform",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Dematerialized",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://cdn.prod.website-files.com/687a04de0b2eb2df33405ca3/6926b9ea26e0d5cdd364045d_Demat_logo_4000x4000_black-background.webp"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "email": "reservations@dematerialized.nl",
+        "contactType": "Customer Service"
+      }
+    }
+  },
+  "breadcrumb": {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Account",
+        "item": "/account"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "My Rentals",
+        "item": "/my-rentals"
+      }
+    ]
+  }
+}
+</script>
