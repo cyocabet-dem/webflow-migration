@@ -42,6 +42,13 @@ from localhost before the dev proxy:
    instructions (Domain settings → Add custom domain — it shows the exact records).
 3. Webflow keeps serving until DNS propagates; there is no downtime window to coordinate.
 
+## 5b. After PR #46 (blog) merges — production data
+
+Run once with the production backend env (Edward's call on where):
+`alembic upgrade head` then `python scripts/seed_blog.py` then `python scripts/upload_blog_images.py`
+— seeds the blog tables and uploads the images to S3 under `demat-europe/img/blog/`. Until then the
+frontend serves the identical bundled content, so there is no urgency coupling this to the cutover.
+
 ## 6. After the soak period
 
 - Cancel the Webflow subscription and the Finsweet ConsentPro subscription.

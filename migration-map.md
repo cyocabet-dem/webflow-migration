@@ -257,8 +257,38 @@ Kept current as work lands. ✅ done · 🔄 in progress · ⏳ pending.
 - ✅ robots.txt + sitemap.xml (server route) replicating the live Webflow sitemap structure exactly
   (bilingual pairs w/ en/nl/x-default alternates + blog URLs from blog.json); live sitemap archived
   in `nl-reference/live-sitemap.xml`. hreflang alternate link tags added site-wide via app.vue.
-- 🔄 og:image re-hosting fleet + full SEO regression sweep (running).
-- ⏳ Mailing-list forms → `POST /mailing-list/subscribe` (endpoint confirmed in backend — wiring after fleet frees files). Contact + missing-pieces still need a NEW backend endpoint (flagged; not bolted onto the blog PR).
+- ✅ og:image re-hosting (2026-07-05): 10 meta images (verified 1200×630) → `public/images/meta/`,
+  11 pages rewritten to absolute `https://dematerialized.nl/...` URLs. Zero Webflow-CDN dependencies remain.
+- ✅ SEO regression sweep (2026-07-05): 13 verifiers over every page vs the old export heads — **zero findings**.
+- ✅ Final crawl (2026-07-05): 64 checks green — every page EN+NL, all blog posts EN+NL, product page, robots; sitemap verified separately.
+
+## Phase 6 — blog to database ✅ (2026-07-05)
+- ✅ **PR #46 → `Edwardvaneechoud/demat-backend`** (branch `claude/blog-models` off the working branch,
+  which stays untouched): BlogPost/Author models (dual-record-per-locale, `(slug,locale)` unique, M2M),
+  public `GET /blogs` + `GET /blogs/{slug}` with NL→EN fallback, Alembic migration (additive),
+  idempotent seed from `app/data/blog.json`.
+- ✅ Migration + seed applied to the TEST DB (authorized by Courtney): 7 EN + 1 NL posts, 2 authors;
+  endpoints live-verified (list order, body+authors, NL variant, EN fallback, 404, 422).
+- ✅ Frontend: `useBlogPosts` composable — API-first with silent fallback to the bundled JSON, so the
+  blog works identically before and after the PR merges.
+- ✅ Blog images in DB+S3 (2026-07-05, Courtney's request): `blog_image_record` table mirroring the
+  clothing `ImageRecord` pattern; all 35 images uploaded to S3 (`demat-europe-test/img/blog/`,
+  sanitized filenames, per-file content types, 35/35 public-read verified); post hero/thumbnail,
+  author pictures, and every body `<img>` rewritten to S3 URLs; `BlogPostDetail` gained an `images`
+  list. Commit `dd9c834` pushed — PR #46 updated with an explanatory comment. Bundled frontend
+  copies remain as the offline fallback. Prod rollout note: re-run migration + upload script with
+  prod env (keys land under `demat-europe/img/blog/`). Note: repo test suite needs Docker + CI-only
+  `.env.test` (unavailable locally, pre-existing); lint clean.
+
+## Phase 7 — deploy & cutover 🔄 (code-side done)
+- ✅ `netlify.toml`, prod env-var scheme, deploy runbook **`app/DEPLOY.md`** (Netlify setup, env vars,
+  Auth0 + backend CORS allowlist entries, DNS cutover, post-soak cancellations).
+- ✅ Everything committed locally: `e44b2a5` on main (not pushed).
+- ⏳ Human dashboard steps (cannot be automated from here): create the Netlify site, set the 2 env
+  vars, add production/preview domains to Auth0 + backend CORS, DNS cutover, post-soak Webflow/Finsweet
+  cancellation. All spelled out in `app/DEPLOY.md`.
+- ⏳ Also outstanding: contact + missing-pieces form endpoint (new backend work, flagged for Edward);
+  reservations-tab visibility for shipping members (product decision, currently faithful old behavior).
 
 ## Phase 6 — blog to database ⏳
 - **Gated on Edward**: confirm base branch (`claude/rental-returns-myparcel-a2v09b`) + PR target. Models sketched in Appendix J; seed data ready in `app/data/blog.json`.
