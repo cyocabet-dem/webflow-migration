@@ -1,0 +1,8 @@
+# Netlify config for the Nuxt frontend (lives in app/; old/ is reference-only).
+[build]
+  base = "app"
+  command = "npm run build"
+  publish = "dist"
+
+# Nitro's Netlify preset is auto-detected during `nuxt build` on Netlify and emits the
+# serverless functions + publish dir; no further config needed here.

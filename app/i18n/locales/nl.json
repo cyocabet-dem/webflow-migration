@@ -1,0 +1,20 @@
+{
+  "consent": {
+    "bannerText": "we gebruiken cookies om de gedeelde kast te laten werken en — met jouw toestemming — om te begrijpen hoe die wordt gebruikt en je relevante dingen te laten zien.",
+    "policyLink": "cookiebeleid",
+    "accept": "alles accepteren",
+    "deny": "weigeren",
+    "preferences": "voorkeuren",
+    "prefsTitle": "cookievoorkeuren",
+    "savePreferences": "voorkeuren opslaan",
+    "alwaysActive": "altijd actief",
+    "essentials": "essentieel",
+    "essentialsDesc": "nodig om de site te laten werken — inloggen, winkelmand en je cookiekeuze zelf.",
+    "marketing": "marketing",
+    "marketingDesc": "gebruikt om onze marketing te meten en te verbeteren (Meta-pixel).",
+    "personalization": "personalisatie",
+    "personalizationDesc": "onthoudt je voorkeuren om je ervaring te personaliseren.",
+    "analytics": "analytics",
+    "analyticsDesc": "helpt ons te begrijpen hoe de site wordt gebruikt (Google Tag Manager, Hotjar)."
+  }
+}

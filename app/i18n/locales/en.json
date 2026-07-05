@@ -1,0 +1,20 @@
+{
+  "consent": {
+    "bannerText": "we use cookies to make the shared closet work, and — with your permission — to understand how it's used and show you relevant things.",
+    "policyLink": "cookie policy",
+    "accept": "accept all",
+    "deny": "deny",
+    "preferences": "preferences",
+    "prefsTitle": "cookie preferences",
+    "savePreferences": "save preferences",
+    "alwaysActive": "always active",
+    "essentials": "essentials",
+    "essentialsDesc": "required for the site to function — sign-in, cart, and your consent choice itself.",
+    "marketing": "marketing",
+    "marketingDesc": "used to measure and improve our marketing (Meta pixel).",
+    "personalization": "personalization",
+    "personalizationDesc": "remembers your preferences to personalize your experience.",
+    "analytics": "analytics",
+    "analyticsDesc": "helps us understand how the site is used (Google Tag Manager, Hotjar)."
+  }
+}

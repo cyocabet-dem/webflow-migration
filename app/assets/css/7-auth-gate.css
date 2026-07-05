@@ -1,0 +1,6 @@
+/* Auth-sensitive chrome is invisible until the Auth0 plugin resolves the session,
+   preventing the old site's flash of wrong-state UI (guest buttons for members etc.).
+   The plugin removes .auth-pending from <html> once state is known. */
+html.auth-pending [data-auth-gate] {
+  visibility: hidden !important;
+}

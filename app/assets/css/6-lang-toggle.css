@@ -1,0 +1,14 @@
+/* Verbatim bridge from the Webflow per-page head <style>: EN/NL spans toggle on html[lang],
+   which @nuxtjs/i18n now sets. Retired once all copy moves into locale files. */
+.lang-nl {
+  display: none;
+}
+html[lang^='nl'] .lang-en {
+  display: none;
+}
+html[lang^='nl'] .lang-nl {
+  display: inline;
+}
+html[lang^='nl'] a.lang-nl {
+  display: inline-flex;
+}
