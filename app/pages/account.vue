@@ -174,9 +174,9 @@ onBeforeUnmount(() => {
     border-radius: 50px;
     cursor: pointer;
     transition: all 0.2s;
-    display: none;
+    display: block;
     width: 100%;
-  " :style="{ display: isAuthenticated ? 'none' : 'block' }" @click="openAuthModal" @mouseover="signInMouseover" @mouseout="signInMouseout">
+  " v-show="!isAuthenticated" data-auth-gate @click="openAuthModal" @mouseover="signInMouseover" @mouseout="signInMouseout">
           sign in
         </button>
         <button data-auth="logged-in" data-auth-action="logout" style="
@@ -192,9 +192,9 @@ onBeforeUnmount(() => {
     border-radius: 50px;
     cursor: pointer;
     transition: all 0.2s;
-    display: none;
+    display: block;
     width: 100%;
-  " :style="{ display: isAuthenticated ? 'block' : 'none' }" @click="logout" @mouseover="signOutMouseover" @mouseout="signOutMouseout">
+  " v-show="isAuthenticated" data-auth-gate @click="logout" @mouseover="signOutMouseover" @mouseout="signOutMouseout">
           sign out
         </button>
       </div>

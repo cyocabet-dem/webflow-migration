@@ -36,11 +36,14 @@ onMounted(() => {
     const wrapper = nav.parentElement
     wrapper.style.margin = '0'
     wrapper.style.padding = '0'
-    wrapper.style.display = 'none'
-    cartObserver = new MutationObserver(() => {
-      const isVisible = nav.style.display !== 'none'
+    const syncWrapper = () => {
+      // The cart may have set the nav's display before this component mounted
+      // (items persist in localStorage), so sync now — not only on mutations.
+      const isVisible = nav.style.display !== 'none' && nav.style.display !== ''
       wrapper.style.display = isVisible ? 'inline-flex' : 'none'
-    })
+    }
+    syncWrapper()
+    cartObserver = new MutationObserver(syncWrapper)
     cartObserver.observe(nav, { attributes: true, attributeFilter: ['style'] })
   }
 })
@@ -164,7 +167,7 @@ onUnmounted(() => {
     border-radius: 50px;
     cursor: pointer;
     transition: all 0.2s;
-    display: none;
+    display: block;
     width: 100%;
   " onmouseover="this.style.backgroundColor='#fff4fe'" onmouseout="this.style.backgroundColor='#fff'">
                     sign out

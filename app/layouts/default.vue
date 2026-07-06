@@ -13,5 +13,6 @@
     <CartUpgradeModal />
     <CartReservationSuccessModal />
     <ConsentBanner />
+    <ConsentCookieWidget />
   </div>
 </template>
