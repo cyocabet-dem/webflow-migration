@@ -280,6 +280,19 @@ Kept current as work lands. ✅ done · 🔄 in progress · ⏳ pending.
   prod env (keys land under `demat-europe/img/blog/`). Note: repo test suite needs Docker + CI-only
   `.env.test` (unavailable locally, pre-existing); lint clean.
 
+## Post-QA fixes (2026-07-06, Courtney's issue list) ✅ — commit `78a1c02`
+- ✅ Sign-out button: was invisible everywhere — a port artifact (`display:none` inline that old
+  auth.js flipped at runtime) in the navbar menu, plus hydration-unsafe `:style` toggles on /account.
+- ✅ NL language persistence: plain `<a>` anchors hard-navigated to EN routes; new global click
+  interceptor (`plugins/locale-links.client.ts`, the DematI18n.localizeHrefs equivalent) prefixes
+  `/nl` and routes through vue-router (SPA nav); locale switcher exempt via its hreflang attr.
+  Verified: /nl/profile → sidenav click → /nl/my-rentals, lang=nl; EN switch still works.
+- ✅ Cookie widget: always-present bottom-left button reopening consent preferences (like Finsweet's);
+  hides while banner/preferences are open. Banner confirmed still appearing for fresh visitors.
+- ✅ Purchase-cart icon disappearing: navbar wrapper only synced on style *mutations*, but pages
+  loading with a persisted non-empty cart write the same display value → no mutation → icon hidden.
+  Now syncs from current state at mount. Verified: reload with 1 item → icon + badge visible.
+
 ## Phase 7 — deploy & cutover 🔄 (code-side done)
 - ✅ `netlify.toml`, prod env-var scheme, deploy runbook **`app/DEPLOY.md`** (Netlify setup, env vars,
   Auth0 + backend CORS allowlist entries, DNS cutover, post-soak cancellations).
