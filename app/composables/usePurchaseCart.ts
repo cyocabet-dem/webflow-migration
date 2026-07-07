@@ -282,7 +282,9 @@ export function usePurchaseCart() {
       }
 
       // Step 2: Need to pay remaining balance via Stripe
-      const currentUrl = window.location.origin
+      // Native apps send the production site's origin (Stripe requires https URLs);
+      // the return is handled in plugins/native.client.ts.
+      const currentUrl = isNativeApp() ? WEB_ORIGIN : window.location.origin
       const successUrl = `${currentUrl}/purchases?payment=success`
       const cancelUrl = `${currentUrl}/purchases?payment=cancelled`
 
@@ -348,7 +350,16 @@ export function usePurchaseCart() {
       // Redirect to Stripe - check multiple possible field names
       const redirectUrl = checkoutData.checkout_url || checkoutData.url || checkoutData.session_url
       if (redirectUrl) {
-        window.location.href = redirectUrl
+        if (isNativeApp()) {
+          // Open first: if it fails, the catch below shows the error in the
+          // still-open modal and no pending-checkout flag is left to falsely
+          // settle on a later resume/browserFinished event.
+          await openInAppBrowser(redirectUrl)
+          setPendingNativeCheckout('purchase')
+          closeCheckoutModal()
+        } else {
+          window.location.href = redirectUrl
+        }
       } else {
         console.error('No checkout URL in response. Full response:', checkoutData)
         throw new Error('No checkout URL received')
