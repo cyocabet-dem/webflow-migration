@@ -221,15 +221,11 @@ onUnmounted(() => {
           </div>
           <div class="code-embed-38 w-embed w-script" data-auth-gate>
             <!-- v-show (not :class) — class bindings that differ from SSR are not patched during hydration -->
-            <div id="join-now-container" v-show="!hasActiveMembership">
+            <div id="join-now-container" v-show="!hasActiveMembership" data-auth-gate>
               <a href="/memberships" class="join-now-btn" id="join-now-btn">join now</a>
-            </div>
-            <div v-show="hasActiveMembership" data-auth-gate>
-              <a href="/faq" class="join-now-btn">faq</a>
             </div>
           </div>
           <a v-show="!hasActiveMembership" href="/memberships" class="button-navbar w-button" data-auth-gate><span class="lang-en">Join now</span><span class="lang-nl">Meld je nu aan</span></a>
-          <a v-show="hasActiveMembership" href="/faq" class="button-navbar w-button" data-auth-gate><span class="lang-en">FAQ</span><span class="lang-nl">FAQ</span></a>
         </div>
       </div>
       <div class="div-nav-links-wrapper desktop-nav">
@@ -242,7 +238,8 @@ onUnmounted(() => {
         <a href="/also-this" class="navbar-links"><span class="lang-en">also this...</span><span class="lang-nl">ook dit...</span></a>
         <a href="#" class="navbar-links hidden bags"><span class="lang-en">bags</span><span class="lang-nl">tassen</span></a>
         <a href="/how-it-works" class="navbar-links dark-pink"><span class="lang-en">How it works</span><span class="lang-nl">Hoe het werkt</span></a>
-        <a data-sort="new" href="/memberships" class="navbar-links hidden pink"><span class="lang-en">join now</span><span class="lang-nl">Lid worden</span></a>
+        <a v-show="!hasActiveMembership" data-sort="new" href="/memberships" class="navbar-links hidden pink" data-auth-gate="collapse"><span class="lang-en">join now</span><span class="lang-nl">Lid worden</span></a>
+        <a v-show="hasActiveMembership" href="/faq" class="navbar-links hidden pink" data-auth-gate="collapse"><span class="lang-en">faq</span><span class="lang-nl">faq</span></a>
       </div>
       <div class="w-embed"></div>
     </div>
