@@ -293,6 +293,27 @@ Kept current as work lands. ✅ done · 🔄 in progress · ⏳ pending.
   loading with a persisted non-empty cart write the same display value → no mutation → icon hidden.
   Now syncs from current state at mount. Verified: reload with 1 item → icon + badge visible.
 
+## Post-QA fixes round 2 (2026-07-07, Courtney's 8-issue list) — commit `3c600b9`
+- ✅ #2 Catalog navbar filter links: SPA-nav regression — useCatalog now watches route.query
+  (loop-guarded vs its own router.replace) and re-inits filters; verified Workwear→date-night click.
+- ✅ #3 Purchase-cart centering: hydration mismatch (SSR empty-branch element reused while client had
+  items) — hydrated-ref fix; items now top-aligned like the reservation overlay.
+- ✅ #4 Sidenav blank gap: `data-auth-gate="collapse"` variant (display:none while pending).
+- ✅ #6 Size update 422: backend requires string attribute values; height was sent as a number
+  (Vue auto-casts type=number models). Note: test profile now has height_cm "151" (original was unset).
+- ✅ #7 my-rentals signed-out flash: pending→signin/authed view states (other account pages already
+  used the loading-first pattern).
+- ✅ #8 Members see "faq" button (→ /faq) instead of join-now in both navbar spots (matches mobile nav).
+- ✅ #5 NL: FAQ realigned to current EN (the LIVE NL FAQ was stale — old rental model/hours/credit
+  rules + 4 untranslated Q&As; current-EN text left as placeholders for Courtney), contact-page NL
+  hours/closure note corrected to EN facts, and a full placeholder-translation sweep over the
+  purchase cart, checkout, reservation overlay/modals, auth modal, onboarding (real NL where
+  obvious, EN placeholder otherwise — all strings now editable in per-file dicts).
+- ℹ️ #1 Credits total: NO frontend divergence — the port matches donations.js verbatim and totals
+  come from the backend ledger; the test account's only sessions are unpublished drafts (backend
+  hides them). Needs Courtney's specifics (which session, expected vs shown) — may be backend/data.
+  A published test donation session (€8.00 balance) was left in the test DB for verification.
+
 ## Phase 7 — deploy & cutover 🔄 (code-side done)
 - ✅ `netlify.toml`, prod env-var scheme, deploy runbook **`app/DEPLOY.md`** (Netlify setup, env vars,
   Auth0 + backend CORS allowlist entries, DNS cutover, post-soak cancellations).
