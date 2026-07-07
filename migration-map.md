@@ -324,6 +324,24 @@ Kept current as work lands. ✅ done · 🔄 in progress · ⏳ pending.
 - ⏳ Also outstanding: contact + missing-pieces form endpoint (new backend work, flagged for Edward);
   reservations-tab visibility for shipping members (product decision, currently faithful old behavior).
 
+## Mobile apps — iOS & Android 🔄 (2026-07-07, Courtney's request)
+- ✅ Capacitor 8 shells around the same Nuxt app (full feature parity by construction): `app/ios/` +
+  `app/android/` projects, `capacitor.config.ts`, `NUXT_MOBILE=1` static-SPA build, icons/splash
+  generated from the brand logo (74 Android + 7 iOS assets). All native behavior is runtime-gated
+  (`Capacitor.isNativePlatform()`) — browsers keep the byte-identical Webflow-faithful site (build +
+  preview verified).
+- ✅ Native integration points: Auth0 via in-app system browser + custom-scheme callback
+  (`nl.dematerialized.app://…`, Auth0's Capacitor pattern); Stripe checkout in the in-app browser
+  with production-site return URLs + return settlement; safe-area CSS (`8-native-app.css`, scoped
+  `body.native-app`); Android back button; deep links (scheme active, universal-link templates in
+  `public/.well-known/`); splash/status-bar; Meta Pixel disabled natively (Apple ATT, 5.1.2).
+- ✅ Bundle diet: `scripts/prune-mobile-bundle.mjs` ships only CSS-referenced media (212MB → 50MB per
+  app); DOM-level `/images/`+`/videos/` refs rewritten to the production site at runtime.
+- ⏳ Human steps (all in `app/MOBILE.md`): install Xcode + Android Studio (no CocoaPods needed — SPM),
+  Auth0 dashboard callback/logout/origin entries, **backend CORS_ORIGINS += `capacitor://localhost`,
+  `https://localhost` (flagged for Edward, env-var change, no backend code touched)**, signing +
+  store listings, universal-link IDs (Team ID / signing SHA-256).
+
 ## Phase 6 — blog to database ⏳
 - **Gated on Edward**: confirm base branch (`claude/rental-returns-myparcel-a2v09b`) + PR target. Models sketched in Appendix J; seed data ready in `app/data/blog.json`.
 

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Dematerialized</string>
+    <string name="title_activity_main">Dematerialized</string>
+    <string name="package_name">nl.dematerialized.app</string>
+    <string name="custom_url_scheme">nl.dematerialized.app</string>
+</resources>

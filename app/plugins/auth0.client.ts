@@ -2,8 +2,18 @@
 // same config (localstorage cache, refresh tokens, API audience), same redirect-callback
 // handling with auth_return_path, same post-login no-membership → /memberships redirect,
 // and the same window globals the ported pages consume (auth0Client, openAuthModal, …).
+//
+// In the Capacitor apps (MOBILE.md) the redirect flow runs through the in-app system
+// browser with a custom-scheme callback (Auth0's Capacitor pattern) — the WebView never
+// navigates away, so the callback arrives via the appUrlOpen deep-link listener below.
 import { createAuth0Client } from '@auth0/auth0-spa-js'
 import type { BackendUser } from '~/composables/useAuth'
+import {
+  NATIVE_APP_ID,
+  auth0NativeCallbackUri,
+  closeInAppBrowser,
+  isNativeApp,
+} from '~/composables/useNativeApp'
 
 export default defineNuxtPlugin(async () => {
   const cfg = useRuntimeConfig().public
@@ -47,13 +57,16 @@ export default defineNuxtPlugin(async () => {
     return
   }
 
+  const native = isNativeApp()
   let client
   try {
     client = await createAuth0Client({
       domain: cfg.auth0Domain,
       clientId: cfg.auth0ClientId,
       authorizationParams: {
-        redirect_uri: window.location.origin + '/',
+        redirect_uri: native
+          ? auth0NativeCallbackUri(cfg.auth0Domain)
+          : window.location.origin + '/',
         // Audience is the API identifier — same value for test and live, per auth.js.
         audience: 'https://api.dematerialized.nl/',
       },
@@ -84,6 +97,52 @@ export default defineNuxtPlugin(async () => {
       setTimeout(() => {
         w.openOnboardingModal?.()
       }, 500)
+    }
+  }
+
+  // Native apps: the Auth0 redirect arrives as a custom-scheme deep link while the
+  // WebView stays on the page the user was on — no page load, so the query-string
+  // handling below never sees it. Logout returns use the same URI (no code/state)
+  // and only need the in-app browser dismissed.
+  if (native) {
+    const router = useRouter()
+    const { App } = await import('@capacitor/app')
+    const handleNativeAuthUrl = async (url: string) => {
+      try {
+        if (url.includes('state=') && (url.includes('code=') || url.includes('error='))) {
+          await client.handleRedirectCallback(url)
+          sessionStorage.removeItem('auth_return_path')
+          isAuthenticated.value = await client.isAuthenticated()
+          if (isAuthenticated.value) {
+            // On web the redirect reloads the page, which implicitly dismisses
+            // the auth modal — natively nothing reloads, so dismiss it here.
+            closeAuthModal()
+            user.value = (await client.getUser()) ?? null
+            const data = await refreshUserData()
+            // Same post-login rule as the web flow: no membership → /memberships.
+            if (data && !data.stripe_id) await router.push('/memberships')
+            else maybeShowOnboardingModal(data)
+          }
+        }
+      } catch (error) {
+        console.error('Auth0 native callback error:', error)
+      } finally {
+        await closeInAppBrowser()
+      }
+    }
+    void App.addListener('appUrlOpen', ({ url }) => {
+      if (!url.startsWith(`${NATIVE_APP_ID}://`)) return
+      void handleNativeAuthUrl(url)
+    })
+    // Cold start via the callback URL (process was killed mid-login): appUrlOpen
+    // never fires for the launching intent, so check the launch URL explicitly.
+    // The login transaction rarely survives a process death, but this guarantees
+    // the in-app browser state is cleaned up either way.
+    try {
+      const launch = await App.getLaunchUrl()
+      if (launch?.url?.startsWith(`${NATIVE_APP_ID}://`)) void handleNativeAuthUrl(launch.url)
+    } catch {
+      // getLaunchUrl unavailable — nothing to replay.
     }
   }
 

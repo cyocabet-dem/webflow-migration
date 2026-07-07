@@ -1,0 +1,3 @@
+# Universal links (iOS) require this file served as JSON despite having no extension.
+/.well-known/apple-app-site-association
+  Content-Type: application/json

@@ -41,6 +41,12 @@ export function useMembershipCheckout() {
       const token = await getToken()
       if (!token) throw new Error('Not authenticated')
 
+      // Stripe requires https return URLs, so the native apps send the production
+      // site's; the return is handled in plugins/native.client.ts (deep link or
+      // in-app-browser close), landing on the same pages the web flow does.
+      const native = isNativeApp()
+      const origin = native ? WEB_ORIGIN : window.location.origin
+
       const response = await fetch(`${apiBase}/stripe/create-checkout-session`, {
         method: 'POST',
         headers: {
@@ -49,8 +55,8 @@ export function useMembershipCheckout() {
         },
         body: JSON.stringify({
           membership_name: membershipName,
-          success_url: `${window.location.origin}/welcome-to-dematerialized`,
-          cancel_url: `${window.location.origin}/error-membership-signup`,
+          success_url: `${origin}/welcome-to-dematerialized`,
+          cancel_url: `${origin}/error-membership-signup`,
         }),
       })
 
@@ -60,7 +66,19 @@ export function useMembershipCheckout() {
       }
 
       const data = await response.json()
-      window.location.href = data.checkout_url
+      if (native) {
+        // Flag only after the browser actually opened — an open failure falls
+        // through to the catch below and must not leave a pending checkout
+        // for a later resume/browserFinished event to falsely settle.
+        await openInAppBrowser(data.checkout_url)
+        setPendingNativeCheckout('membership')
+        // The WebView never navigates away — restore the button for the return.
+        button.innerHTML = originalHTML
+        button.style.pointerEvents = 'auto'
+        button.style.opacity = '1'
+      } else {
+        window.location.href = data.checkout_url
+      }
     } catch (error: any) {
       console.error('Checkout error:', error)
       alert('Something went wrong: ' + error.message)
@@ -108,6 +126,12 @@ export function useMembershipCheckout() {
     }
 
     watch(authReady, (ready) => ready && replay(), { immediate: true })
+    // Native only: the web flow reloads the page after login (authReady flips on
+    // the fresh mount, triggering the watcher above), but natively login happens
+    // in-place via the in-app browser — replay when authentication lands instead.
+    if (isNativeApp()) {
+      watch(isAuthenticated, (authed) => authed && replay())
+    }
   }
 
   return { checkout, install }

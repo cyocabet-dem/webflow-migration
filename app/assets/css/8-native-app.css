@@ -1,0 +1,54 @@
+/* Native app shell (Capacitor iOS/Android) — see MOBILE.md.
+   Every rule is scoped to body.native-app, which plugins/native.client.ts sets
+   only inside the apps; the browser site never matches these selectors.
+
+   Both platforms run edge-to-edge, so the fixed chrome is padded by the safe-area
+   insets (status bar / notch at the top, home indicator at the bottom):
+   - iOS: env(safe-area-inset-*) — viewport-fit=cover is already in the meta tag.
+   - Android 15+: Capacitor injects --safe-area-inset-* custom properties.
+   The var(..., env(...)) pattern resolves whichever one the platform provides. */
+
+body.native-app {
+  --demat-safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --demat-safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  /* Native apps don't show a tap flash on every touch. */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Fixed top bars: pin to the viewport top (their Webflow rules rely on in-flow
+   anchoring) and extend them under the status bar, keeping their content below it. */
+body.native-app .navbar-desktop,
+body.native-app .top-navbar-mobile {
+  top: 0;
+  padding-top: var(--demat-safe-top);
+}
+
+/* .top-navbar-mobile has a fixed 52px height in the Webflow CSS. */
+body.native-app .top-navbar-mobile {
+  height: calc(52px + var(--demat-safe-top));
+}
+
+/* Page content lays itself out to clear the original bar heights; shift it down
+   by the inset the bars just grew by. Fixed elements are out of flow and unaffected. */
+body.native-app #__nuxt > div {
+  padding-top: var(--demat-safe-top);
+  padding-bottom: var(--demat-safe-bottom);
+}
+
+/* Bottom tab bar: keep its icons above the home indicator. */
+body.native-app .bottom-navbar-mobile {
+  padding-bottom: calc(8px + var(--demat-safe-bottom));
+}
+
+/* Full-height panels whose close buttons sit near the top edge. */
+body.native-app .cart-overlay,
+body.native-app .filter-menu-overlay {
+  padding-top: var(--demat-safe-top);
+}
+
+/* Cookie-consent popups (bottom-anchored on phones). */
+body.native-app .flowappz-cookie-consent-popup-14,
+body.native-app .flowappz-cookie-consent-popup-15,
+body.native-app .flowappz-cookie-consent-popup-16 {
+  margin-bottom: var(--demat-safe-bottom);
+}

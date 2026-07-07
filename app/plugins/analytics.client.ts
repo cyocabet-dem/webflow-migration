@@ -37,6 +37,10 @@ export default defineNuxtPlugin(() => {
   })
 
   onConsentGranted('marketing', () => {
+    // Web-only: in the native apps the Meta Pixel would count as cross-app tracking,
+    // which Apple requires an App Tracking Transparency prompt for (guideline 5.1.2).
+    // Rather than ship the ATT dialog, the apps simply don't load the pixel.
+    if (isNativeApp()) return
     if (window.fbq) return
     const fbq: any = (...args: unknown[]) => {
       fbq.callMethod ? fbq.callMethod(...args) : fbq.queue.push(args)
