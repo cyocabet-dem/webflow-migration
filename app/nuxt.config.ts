@@ -1,7 +1,14 @@
 // Dematerialized frontend — faithful port of the Webflow site (see ../migration-map.md).
+
+// The Capacitor iOS/Android apps (MOBILE.md) ship this same app as a static SPA
+// bundle: NUXT_MOBILE=1 only flips rendering for `nuxt generate`; all native
+// behavior is gated at runtime via Capacitor.isNativePlatform().
+const isMobileBuild = process.env.NUXT_MOBILE === '1'
+
 export default defineNuxtConfig({
   compatibilityDate: '2026-07-04',
   devtools: { enabled: true },
+  ssr: !isMobileBuild,
 
   // The backend's CORS allowlist has no localhost origins, so in dev the API is
   // reached same-origin via /dev-api and proxied by Nitro. Staging/prod call it directly.
@@ -33,6 +40,9 @@ export default defineNuxtConfig({
     '~/assets/css/5-sidenav.css',
     '~/assets/css/6-lang-toggle.css',
     '~/assets/css/7-auth-gate.css',
+    // Native-app-only chrome (safe areas); every rule is scoped to body.native-app,
+    // which only the Capacitor shells set — inert in browsers.
+    '~/assets/css/8-native-app.css',
   ],
 
   app: {

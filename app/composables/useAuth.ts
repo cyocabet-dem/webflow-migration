@@ -38,25 +38,54 @@ export function useAuth() {
     authModalOpen.value = false
   }
 
+  // In the native apps the redirect flow runs through the in-app system browser
+  // (Google sign-in blocks WebViews); the callback comes back as a deep link
+  // handled in plugins/auth0.client.ts.
   async function login() {
     const c = client()
     if (!c) return
     sessionStorage.setItem('auth_return_path', window.location.pathname)
-    await c.loginWithRedirect()
+    if (isNativeApp()) {
+      await c.loginWithRedirect({ openUrl: (url) => openInAppBrowser(url) })
+    } else {
+      await c.loginWithRedirect()
+    }
   }
 
   async function signup() {
     const c = client()
     if (!c) return
     sessionStorage.setItem('auth_return_path', window.location.pathname)
-    await c.loginWithRedirect({ authorizationParams: { screen_hint: 'signup' } })
+    if (isNativeApp()) {
+      await c.loginWithRedirect({
+        authorizationParams: { screen_hint: 'signup' },
+        openUrl: (url) => openInAppBrowser(url),
+      })
+    } else {
+      await c.loginWithRedirect({ authorizationParams: { screen_hint: 'signup' } })
+    }
   }
 
   async function logout() {
     const c = client()
     if (!c) return
     sessionStorage.removeItem('onboarding_modal_dismissed')
-    await c.logout({ logoutParams: { returnTo: window.location.origin + '/' } })
+    if (isNativeApp()) {
+      const { auth0Domain } = useRuntimeConfig().public
+      await c.logout({
+        logoutParams: { returnTo: auth0NativeCallbackUri(auth0Domain) },
+        openUrl: (url) => openInAppBrowser(url),
+      })
+      // The web flow reloads the page on return; natively nothing reloads,
+      // so reset the reactive session state here and land on the homepage.
+      isAuthenticated.value = false
+      user.value = null
+      userData.value = null
+      ;(window as any).currentUserData = null
+      await navigateTo('/')
+    } else {
+      await c.logout({ logoutParams: { returnTo: window.location.origin + '/' } })
+    }
   }
 
   async function getToken(): Promise<string | null> {
