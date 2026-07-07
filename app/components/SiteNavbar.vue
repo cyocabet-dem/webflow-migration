@@ -224,8 +224,12 @@ onUnmounted(() => {
             <div id="join-now-container" v-show="!hasActiveMembership">
               <a href="/memberships" class="join-now-btn" id="join-now-btn">join now</a>
             </div>
+            <div v-show="hasActiveMembership" data-auth-gate>
+              <a href="/faq" class="join-now-btn">faq</a>
+            </div>
           </div>
           <a v-show="!hasActiveMembership" href="/memberships" class="button-navbar w-button" data-auth-gate><span class="lang-en">Join now</span><span class="lang-nl">Meld je nu aan</span></a>
+          <a v-show="hasActiveMembership" href="/faq" class="button-navbar w-button" data-auth-gate><span class="lang-en">FAQ</span><span class="lang-nl">FAQ</span></a>
         </div>
       </div>
       <div class="div-nav-links-wrapper desktop-nav">

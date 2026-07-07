@@ -128,12 +128,15 @@ function isSidenavActive(href: string): boolean {
   return sidenavPath.value === h || sidenavPath.value.startsWith(h + '/')
 }
 // Hide the reservations link for shipping members (synchronous, from auth plugin state)
-const { userData: authUserData } = useAuth()
+const { userData: authUserData, authReady } = useAuth()
 const SHIPPING_MEMBERSHIP_NAMES = ['5 items, 1 shipment per month', '5 items per shipment, 2 shipments per month']
 const hideReservationsLink = computed(() => SHIPPING_MEMBERSHIP_NAMES.includes(authUserData.value?.membership?.name ?? ''))
 
 // ── Page state (mirrors the old display toggles) ──
-const isAuthenticated = ref(false)
+// Auth starts as 'pending' (loading spinner) so the signin state only ever
+// renders once the auth check has actually resolved to signed-out.
+type AuthView = 'pending' | 'signin' | 'authed'
+const authView = ref<AuthView>('pending')
 const showLoading = ref(true)
 const showNoMembership = ref(false)
 const showEmpty = ref(false)
@@ -436,15 +439,22 @@ async function loadRentals() {
 // TODO Phase 4: window.auth0Client wiring — until then the page stays in its signed-out state
 async function initRentals() {
   const auth0 = (window as any).auth0Client
-  if (!auth0) return
+  if (!auth0) {
+    authView.value = 'signin'
+    return
+  }
   let isAuth = false
   try {
     isAuth = await auth0.isAuthenticated()
   } catch {
+    authView.value = 'signin'
     return
   }
-  if (!isAuth) return
-  isAuthenticated.value = true
+  if (!isAuth) {
+    authView.value = 'signin'
+    return
+  }
+  authView.value = 'authed'
   try {
     const token = await auth0.getTokenSilently()
     const userResponse = await fetch(`${apiBase}/users/me`, {
@@ -476,7 +486,18 @@ function openAuthModal() {
 
 onMounted(() => {
   ;(window as any).RentalsManager = { renderRentalsPage: syncCartState }
-  initRentals()
+  // Auth resolves before app mount, so this almost always runs immediately;
+  // the watch covers the rare case where the plugin hasn't finished yet.
+  if (authReady.value) {
+    initRentals()
+  } else {
+    const stop = watch(authReady, (ready) => {
+      if (ready) {
+        stop()
+        initRentals()
+      }
+    })
+  }
 })
 
 onBeforeUnmount(() => {
@@ -514,7 +535,7 @@ onBeforeUnmount(() => {
               </span>
               <span class="lang-en">my rentals</span><span class="lang-nl">mijn huurartikelen</span>
             </a>
-            <a href="/reservations" class="account-sidenav-link" :class="{ active: isSidenavActive('/reservations') }" data-nav="reservations" data-auth-gate :style="hideReservationsLink ? { display: 'none' } : undefined">
+            <a href="/reservations" class="account-sidenav-link" :class="{ active: isSidenavActive('/reservations') }" data-nav="reservations" data-auth-gate="collapse" :style="hideReservationsLink ? { display: 'none' } : undefined">
               <span class="account-sidenav-icon">
                 <svg viewBox="0 0 24 24">
                   <rect x="3" y="4" width="18" height="18" rx="2"></rect>
@@ -558,7 +579,7 @@ onBeforeUnmount(() => {
         <div class="div-content-wrapper-policies right rentals">
           <div class="code-embed-35 w-embed">
             <div id="rentals-container">
-              <div v-if="!isAuthenticated" class="rentals-signin">
+              <div v-if="authView === 'signin'" class="rentals-signin">
                 <h2 class="rentals-signin-title">{{ t('signinTitle') }}</h2>
                 <p class="rentals-signin-text">{{ t('signinText') }}</p>
                 <button class="rentals-signin-btn" @click="openAuthModal">{{ t('signin') }}</button>

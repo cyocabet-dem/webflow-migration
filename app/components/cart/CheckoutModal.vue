@@ -18,6 +18,28 @@ const {
   processCheckout,
 } = usePurchaseCart()
 
+const { locale } = useI18n()
+const isNL = computed(() => locale.value.startsWith('nl'))
+
+const T = {
+  purchaseSuccessful: { en: 'purchase successful!', nl: 'aankoop geslaagd!' },
+  viewHistory: { en: 'you can view your purchase history in your account.', nl: 'je kunt je aankoopgeschiedenis bekijken in je account.' },
+  creditsAppliedSuffix: { en: ' in store credits applied', nl: ' aan winkeltegoed toegepast' },
+  viewMyPurchases: { en: 'view my purchases', nl: 'bekijk mijn aankopen' },
+  continueBrowsing: { en: 'continue browsing', nl: 'verder winkelen' },
+  checkout: { en: 'checkout', nl: 'afrekenen' },
+  itemsLabel: { en: 'items', nl: 'items' },
+  itemFallback: { en: 'item', nl: 'item' },
+  subtotal: { en: 'subtotal (50% off)', nl: 'subtotaal (50% korting)' },
+  yourStoreCredits: { en: 'your store credits', nl: 'jouw winkeltegoed' },
+  creditsApplied: { en: 'credits applied', nl: 'tegoed toegepast' },
+  total: { en: 'total', nl: 'totaal' },
+  redirectInfo: { en: "by clicking 'complete purchase' you will be redirected to our payment provider.", nl: "by clicking 'complete purchase' you will be redirected to our payment provider." },
+  creditsCover: { en: 'your credits cover this purchase!', nl: 'je tegoed dekt deze aankoop!' },
+  processing: { en: 'processing...', nl: 'verwerken...' },
+  completePurchase: { en: 'complete purchase', nl: 'aankoop afronden' },
+} as const
+
 const successCreditsApplied = computed(() => successOrder.value?.credits_applied_cents || 0)
 
 function continueBrowsing() {
@@ -56,33 +78,33 @@ onUnmounted(() => {
               <polyline points="16 10 10.5 15.5 8 13"></polyline>
             </svg>
           </div>
-          <h2>purchase successful!</h2>
-          <p>you can view your purchase history in your account.</p>
+          <h2>{{ isNL ? T.purchaseSuccessful.nl : T.purchaseSuccessful.en }}</h2>
+          <p>{{ isNL ? T.viewHistory.nl : T.viewHistory.en }}</p>
           <div v-if="successCreditsApplied > 0" class="checkout-success-credits">
-            <span>{{ formatPrice(successCreditsApplied) }} in store credits applied</span>
+            <span>{{ formatPrice(successCreditsApplied) }}{{ isNL ? T.creditsAppliedSuffix.nl : T.creditsAppliedSuffix.en }}</span>
           </div>
           <div class="checkout-success-actions">
-            <a href="/purchases" class="checkout-success-btn">view my purchases</a>
-            <button class="checkout-success-btn-secondary" @click="continueBrowsing()">continue browsing</button>
+            <a href="/purchases" class="checkout-success-btn">{{ isNL ? T.viewMyPurchases.nl : T.viewMyPurchases.en }}</a>
+            <button class="checkout-success-btn-secondary" @click="continueBrowsing()">{{ isNL ? T.continueBrowsing.nl : T.continueBrowsing.en }}</button>
           </div>
         </div>
       </div>
       <div v-else-if="!creditsLoading" class="checkout-modal-container">
         <div class="checkout-modal-header">
-          <h2>checkout</h2>
+          <h2>{{ isNL ? T.checkout.nl : T.checkout.en }}</h2>
           <button class="checkout-modal-close" @click="closeCheckoutModal()">&times;</button>
         </div>
 
         <div class="checkout-modal-body">
           <div class="checkout-section">
-            <div class="checkout-section-title">items ({{ items.length }})</div>
+            <div class="checkout-section-title">{{ isNL ? T.itemsLabel.nl : T.itemsLabel.en }} ({{ items.length }})</div>
             <div class="checkout-items">
               <div v-for="item in items" :key="item.clothing_item_id" class="checkout-item">
                 <div class="checkout-item-image">
                   <img v-if="item.image_url" :src="item.image_url" :alt="item.name">
                 </div>
                 <div class="checkout-item-details">
-                  <div class="checkout-item-name">{{ item.name?.toLowerCase() || 'item' }}</div>
+                  <div class="checkout-item-name">{{ item.name?.toLowerCase() || (isNL ? T.itemFallback.nl : T.itemFallback.en) }}</div>
                 </div>
                 <div class="checkout-item-prices">
                   <span class="checkout-item-original">{{ formatPrice(item.retail_price_cents) }}</span>
@@ -94,19 +116,19 @@ onUnmounted(() => {
 
           <div class="checkout-summary">
             <div class="checkout-summary-row">
-              <span>subtotal (50% off)</span>
+              <span>{{ isNL ? T.subtotal.nl : T.subtotal.en }}</span>
               <span>{{ formatPrice(total) }}</span>
             </div>
             <div class="checkout-summary-row">
-              <span>your store credits</span>
+              <span>{{ isNL ? T.yourStoreCredits.nl : T.yourStoreCredits.en }}</span>
               <span>{{ formatPrice(creditBalance) }}</span>
             </div>
             <div v-if="creditsToApply > 0" class="checkout-summary-row checkout-credits-applied">
-              <span>credits applied</span>
+              <span>{{ isNL ? T.creditsApplied.nl : T.creditsApplied.en }}</span>
               <span>-{{ formatPrice(creditsToApply) }}</span>
             </div>
             <div class="checkout-summary-row checkout-summary-total">
-              <span>total</span>
+              <span>{{ isNL ? T.total.nl : T.total.en }}</span>
               <span>{{ formatPrice(finalTotal) }}</span>
             </div>
           </div>
@@ -114,10 +136,10 @@ onUnmounted(() => {
 
         <div class="checkout-modal-footer">
           <p v-show="checkoutError" id="checkout-error-msg" class="checkout-error-msg">{{ checkoutError }}</p>
-          <p class="checkout-info">{{ finalTotal > 0 ? "by clicking 'complete purchase' you will be redirected to our payment provider." : 'your credits cover this purchase!' }}</p>
+          <p class="checkout-info">{{ finalTotal > 0 ? (isNL ? T.redirectInfo.nl : T.redirectInfo.en) : (isNL ? T.creditsCover.nl : T.creditsCover.en) }}</p>
           <button id="checkout-submit-btn" class="checkout-submit-btn" :disabled="isCheckingOut" @click="processCheckout()">
-            <template v-if="isCheckingOut"><span class="checkout-spinner"></span> processing...</template>
-            <template v-else>complete purchase</template>
+            <template v-if="isCheckingOut"><span class="checkout-spinner"></span> {{ isNL ? T.processing.nl : T.processing.en }}</template>
+            <template v-else>{{ isNL ? T.completePurchase.nl : T.completePurchase.en }}</template>
           </button>
         </div>
       </div>

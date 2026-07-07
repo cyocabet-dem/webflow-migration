@@ -14,6 +14,25 @@ const {
   updateCartBadge,
 } = usePurchaseCart()
 
+const { locale } = useI18n()
+const isNL = computed(() => locale.value.startsWith('nl'))
+
+const T = {
+  yourCart: { en: 'your cart', nl: 'jouw winkelmand' },
+  cartEmpty: { en: 'your cart is empty', nl: 'je winkelmand is leeg' },
+  itemFallback: { en: 'item', nl: 'item' },
+  total: { en: 'total', nl: 'totaal' },
+  checkout: { en: 'checkout', nl: 'afrekenen' },
+  addedToCart: { en: 'Added to cart', nl: 'Toegevoegd aan winkelmand' },
+} as const
+
+// The purchase cart is loaded from localStorage before hydration, while the
+// server always renders the empty state. Gate the items branch on mount so
+// hydration matches the server HTML (otherwise Vue reuses the
+// .cart-panel-empty div for the items list, leaving items flex-centered).
+const hydrated = ref(false)
+const hasItems = computed(() => hydrated.value && items.value.length > 0)
+
 function onRemove(clothingItemId: number) {
   removeItem(clothingItemId)
   const rentalsManager = (window as any).RentalsManager
@@ -27,6 +46,7 @@ function onKeydown(e: KeyboardEvent) {
 }
 
 onMounted(() => {
+  hydrated.value = true
   document.addEventListener('keydown', onKeydown)
   updateCartBadge()
 })
@@ -48,18 +68,18 @@ watch(items, () => updateCartBadge(), { deep: true })
       @click="closeCartPanel()"
     ></div>
     <div id="purchase-cart-panel" class="cart-panel" :class="{ 'cart-panel-open': panelOpen }">
-      <template v-if="items.length === 0">
+      <template v-if="!hasItems">
         <div class="cart-panel-header">
-          <span class="cart-panel-title">your cart</span>
+          <span class="cart-panel-title">{{ isNL ? T.yourCart.nl : T.yourCart.en }}</span>
           <button class="cart-panel-close" @click="closeCartPanel()">&times;</button>
         </div>
         <div class="cart-panel-empty">
-          <p>your cart is empty</p>
+          <p>{{ isNL ? T.cartEmpty.nl : T.cartEmpty.en }}</p>
         </div>
       </template>
       <template v-else>
         <div class="cart-panel-header">
-          <span class="cart-panel-title">your cart ({{ items.length }})</span>
+          <span class="cart-panel-title">{{ isNL ? T.yourCart.nl : T.yourCart.en }} ({{ items.length }})</span>
           <button class="cart-panel-close" @click="closeCartPanel()">&times;</button>
         </div>
         <div class="cart-panel-items">
@@ -68,7 +88,7 @@ watch(items, () => updateCartBadge(), { deep: true })
               <img v-if="item.image_url" :src="item.image_url" :alt="item.name">
             </div>
             <div class="cart-panel-item-info">
-              <div class="cart-panel-item-name">{{ item.name?.toLowerCase() || 'item' }}</div>
+              <div class="cart-panel-item-name">{{ item.name?.toLowerCase() || (isNL ? T.itemFallback.nl : T.itemFallback.en) }}</div>
               <div class="cart-panel-item-price">{{ formatPrice(item.purchase_price_cents) }}</div>
             </div>
             <button class="cart-panel-item-remove" @click="onRemove(item.clothing_item_id)">
@@ -81,11 +101,11 @@ watch(items, () => updateCartBadge(), { deep: true })
         </div>
         <div class="cart-panel-footer">
           <div class="cart-panel-total">
-            <span>total</span>
+            <span>{{ isNL ? T.total.nl : T.total.en }}</span>
             <span>{{ formatPrice(total) }}</span>
           </div>
           <button class="cart-panel-checkout-btn" @click="openCheckoutModal()">
-            checkout
+            {{ isNL ? T.checkout.nl : T.checkout.en }}
           </button>
         </div>
       </template>
@@ -99,7 +119,7 @@ watch(items, () => updateCartBadge(), { deep: true })
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <polyline points="20 6 9 17 4 12"></polyline>
       </svg>
-      <span>Added to cart</span>
+      <span>{{ isNL ? T.addedToCart.nl : T.addedToCart.en }}</span>
     </div>
   </div>
 </template>

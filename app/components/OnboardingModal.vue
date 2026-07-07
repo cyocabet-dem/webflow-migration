@@ -10,15 +10,15 @@
       <!-- Progress Bar -->
       <div class="onboarding-progress">
         <div class="onboarding-progress-step" :class="progressClass(1)" data-step="1">
-          <span class="progress-label">welcome</span>
+          <span class="progress-label">{{ isNL ? T.progressWelcome.nl : T.progressWelcome.en }}</span>
           <div class="progress-bar"><div class="progress-fill"></div></div>
         </div>
         <div class="onboarding-progress-step" :class="progressClass(2)" data-step="2">
-          <span class="progress-label">your info</span>
+          <span class="progress-label">{{ isNL ? T.progressYourInfo.nl : T.progressYourInfo.en }}</span>
           <div class="progress-bar"><div class="progress-fill"></div></div>
         </div>
         <div class="onboarding-progress-step" :class="progressClass(3)" data-step="3">
-          <span class="progress-label">your profile</span>
+          <span class="progress-label">{{ isNL ? T.progressYourProfile.nl : T.progressYourProfile.en }}</span>
           <div class="progress-bar"><div class="progress-fill"></div></div>
         </div>
       </div>
@@ -36,50 +36,50 @@
               <path d="M30 30L25 20M90 30L95 20M45 15L50 5M75 15L70 5" stroke="#4b073f" stroke-width="1.5" stroke-linecap="round"/>
             </svg>
           </div>
-          <h2 class="onboarding-title">welcome to the club!</h2>
-          <p class="onboarding-subtitle">you're now a member of our shared closet. let's quickly set up your profile for a better experience; you can adjust it later.</p>
-          <button class="onboarding-btn-primary" @click="nextStep">continue</button>
-          <button class="onboarding-btn-secondary" @click="skip">i'll do this later</button>
+          <h2 class="onboarding-title">{{ isNL ? T.welcomeTitle.nl : T.welcomeTitle.en }}</h2>
+          <p class="onboarding-subtitle">{{ isNL ? T.welcomeSubtitle.nl : T.welcomeSubtitle.en }}</p>
+          <button class="onboarding-btn-primary" @click="nextStep">{{ isNL ? T.continueBtn.nl : T.continueBtn.en }}</button>
+          <button class="onboarding-btn-secondary" @click="skip">{{ isNL ? T.doLater.nl : T.doLater.en }}</button>
         </div>
       </div>
 
       <!-- Step 2: Name Only -->
       <div class="onboarding-step" :class="{ active: currentStep === 2 }" data-step="2">
         <div class="onboarding-content">
-          <h2 class="onboarding-title">what's your name?</h2>
-          <p class="onboarding-subtitle">so we know what to call you</p>
+          <h2 class="onboarding-title">{{ isNL ? T.nameTitle.nl : T.nameTitle.en }}</h2>
+          <p class="onboarding-subtitle">{{ isNL ? T.nameSubtitle.nl : T.nameSubtitle.en }}</p>
 
           <div class="onboarding-form">
             <div class="onboarding-input-group">
-              <label class="onboarding-label">first name</label>
-              <input v-model="firstName" type="text" id="onboarding-firstname" class="onboarding-input" placeholder="enter your first name">
+              <label class="onboarding-label">{{ isNL ? T.firstName.nl : T.firstName.en }}</label>
+              <input v-model="firstName" type="text" id="onboarding-firstname" class="onboarding-input" :placeholder="isNL ? T.phFirstName.nl : T.phFirstName.en">
             </div>
             <div class="onboarding-input-group">
-              <label class="onboarding-label">last name</label>
-              <input v-model="lastName" type="text" id="onboarding-lastname" class="onboarding-input" placeholder="enter your last name">
+              <label class="onboarding-label">{{ isNL ? T.lastName.nl : T.lastName.en }}</label>
+              <input v-model="lastName" type="text" id="onboarding-lastname" class="onboarding-input" :placeholder="isNL ? T.phLastName.nl : T.phLastName.en">
             </div>
           </div>
 
-          <button class="onboarding-btn-primary" @click="nextStep">continue</button>
-          <button class="onboarding-btn-back" @click="prevStep">back</button>
+          <button class="onboarding-btn-primary" @click="nextStep">{{ isNL ? T.continueBtn.nl : T.continueBtn.en }}</button>
+          <button class="onboarding-btn-back" @click="prevStep">{{ isNL ? T.back.nl : T.back.en }}</button>
         </div>
       </div>
 
       <!-- Step 3: Contact & Address -->
       <div class="onboarding-step" :class="{ active: currentStep === 3 }" data-step="3">
         <div class="onboarding-content">
-          <h2 class="onboarding-title">contact &amp; address</h2>
-          <p class="onboarding-subtitle">so we know where to reach you</p>
+          <h2 class="onboarding-title">{{ isNL ? T.contactTitle.nl : T.contactTitle.en }}</h2>
+          <p class="onboarding-subtitle">{{ isNL ? T.contactSubtitle.nl : T.contactSubtitle.en }}</p>
 
           <div class="onboarding-form">
             <div class="onboarding-input-group">
-              <label class="onboarding-label">phone number</label>
+              <label class="onboarding-label">{{ isNL ? T.phoneNumber.nl : T.phoneNumber.en }}</label>
               <input v-model="phoneNumber" type="tel" id="onboarding-phone" class="onboarding-input" placeholder="+31 6 1234 5678">
             </div>
 
             <div class="onboarding-input-group">
-              <label class="onboarding-label">find your address</label>
-              <input v-model="addressFull" type="text" id="onboarding-address-search" class="onboarding-input" placeholder="start typing your address..." @input="searchAddress">
+              <label class="onboarding-label">{{ isNL ? T.findAddress.nl : T.findAddress.en }}</label>
+              <input v-model="addressFull" type="text" id="onboarding-address-search" class="onboarding-input" :placeholder="isNL ? T.phAddressSearch.nl : T.phAddressSearch.en" @input="searchAddress">
               <div id="onboarding-address-suggestions" class="address-suggestions" :class="{ active: suggestionsVisible }">
                 <div
                   v-for="(feature, index) in suggestions"
@@ -94,106 +94,106 @@
             </div>
 
             <div class="onboarding-input-group">
-              <label class="onboarding-label">street</label>
-              <input v-model="addressStreet" type="text" id="onboarding-street" class="onboarding-input" placeholder="street name">
+              <label class="onboarding-label">{{ isNL ? T.street.nl : T.street.en }}</label>
+              <input v-model="addressStreet" type="text" id="onboarding-street" class="onboarding-input" :placeholder="isNL ? T.phStreet.nl : T.phStreet.en">
             </div>
 
             <div class="onboarding-form-row">
               <div class="onboarding-input-group">
-                <label class="onboarding-label">house number</label>
+                <label class="onboarding-label">{{ isNL ? T.houseNumber.nl : T.houseNumber.en }}</label>
                 <input v-model="addressHouseNumber" type="text" id="onboarding-house-number" class="onboarding-input" placeholder="123">
               </div>
               <div class="onboarding-input-group">
-                <label class="onboarding-label">apt / unit</label>
-                <input v-model="addressUnit" type="text" id="onboarding-unit" class="onboarding-input" placeholder="optional">
+                <label class="onboarding-label">{{ isNL ? T.aptUnit.nl : T.aptUnit.en }}</label>
+                <input v-model="addressUnit" type="text" id="onboarding-unit" class="onboarding-input" :placeholder="isNL ? T.phOptional.nl : T.phOptional.en">
               </div>
             </div>
 
             <div class="onboarding-form-row">
               <div class="onboarding-input-group">
-                <label class="onboarding-label">postal code</label>
+                <label class="onboarding-label">{{ isNL ? T.postalCode.nl : T.postalCode.en }}</label>
                 <input v-model="addressZipcode" type="text" id="onboarding-zipcode" class="onboarding-input" placeholder="1234 AB">
               </div>
               <div class="onboarding-input-group">
-                <label class="onboarding-label">city</label>
-                <input v-model="addressCity" type="text" id="onboarding-city" class="onboarding-input" placeholder="city">
+                <label class="onboarding-label">{{ isNL ? T.city.nl : T.city.en }}</label>
+                <input v-model="addressCity" type="text" id="onboarding-city" class="onboarding-input" :placeholder="isNL ? T.phCity.nl : T.phCity.en">
               </div>
             </div>
           </div>
 
-          <button class="onboarding-btn-primary" @click="nextStep">continue</button>
-          <button class="onboarding-btn-back" @click="prevStep">back</button>
+          <button class="onboarding-btn-primary" @click="nextStep">{{ isNL ? T.continueBtn.nl : T.continueBtn.en }}</button>
+          <button class="onboarding-btn-back" @click="prevStep">{{ isNL ? T.back.nl : T.back.en }}</button>
         </div>
       </div>
 
       <!-- Step 4: Birthday -->
       <div class="onboarding-step" :class="{ active: currentStep === 4 }" data-step="4">
         <div class="onboarding-content">
-          <h2 class="onboarding-title">your birthday</h2>
-          <p class="onboarding-subtitle">so you can receive special treatment</p>
+          <h2 class="onboarding-title">{{ isNL ? T.birthdayTitle.nl : T.birthdayTitle.en }}</h2>
+          <p class="onboarding-subtitle">{{ isNL ? T.birthdaySubtitle.nl : T.birthdaySubtitle.en }}</p>
 
           <div class="onboarding-form">
             <div class="onboarding-input-group">
-              <label class="onboarding-label">date of birth</label>
+              <label class="onboarding-label">{{ isNL ? T.dateOfBirth.nl : T.dateOfBirth.en }}</label>
               <input v-model="dateOfBirth" type="date" id="onboarding-birthday" class="onboarding-input">
             </div>
           </div>
 
-          <button class="onboarding-btn-primary" @click="nextStep">continue</button>
-          <button class="onboarding-btn-back" @click="prevStep">back</button>
+          <button class="onboarding-btn-primary" @click="nextStep">{{ isNL ? T.continueBtn.nl : T.continueBtn.en }}</button>
+          <button class="onboarding-btn-back" @click="prevStep">{{ isNL ? T.back.nl : T.back.en }}</button>
         </div>
       </div>
 
       <!-- Step 5: Size Profile -->
       <div class="onboarding-step" :class="{ active: currentStep === 5 }" data-step="5">
         <div class="onboarding-content">
-          <h2 class="onboarding-title">your sizes</h2>
-          <p class="onboarding-subtitle">so we can make sure to have plenty of options that fit you</p>
+          <h2 class="onboarding-title">{{ isNL ? T.sizesTitle.nl : T.sizesTitle.en }}</h2>
+          <p class="onboarding-subtitle">{{ isNL ? T.sizesSubtitle.nl : T.sizesSubtitle.en }}</p>
 
           <div class="onboarding-form">
             <div class="onboarding-form-row">
               <div class="onboarding-input-group">
-                <label class="onboarding-label">height (cm)</label>
+                <label class="onboarding-label">{{ isNL ? T.height.nl : T.height.en }}</label>
                 <input v-model="heightCm" type="number" id="onboarding-height" class="onboarding-input" placeholder="175">
               </div>
               <div class="onboarding-input-group">
-                <label class="onboarding-label">preferred fit</label>
+                <label class="onboarding-label">{{ isNL ? T.preferredFit.nl : T.preferredFit.en }}</label>
                 <select v-model="preferredFit" id="onboarding-preferred-fit" class="onboarding-input">
-                  <option value="">select fit...</option>
-                  <option value="Slim">slim</option>
-                  <option value="Regular">regular</option>
-                  <option value="Oversized">oversized</option>
+                  <option value="">{{ isNL ? T.selectFit.nl : T.selectFit.en }}</option>
+                  <option value="Slim">{{ isNL ? T.fitSlim.nl : T.fitSlim.en }}</option>
+                  <option value="Regular">{{ isNL ? T.fitRegular.nl : T.fitRegular.en }}</option>
+                  <option value="Oversized">{{ isNL ? T.fitOversized.nl : T.fitOversized.en }}</option>
                 </select>
               </div>
             </div>
 
             <div class="onboarding-form-row">
               <div class="onboarding-input-group">
-                <label class="onboarding-label">typical shirt size</label>
+                <label class="onboarding-label">{{ isNL ? T.shirtSize.nl : T.shirtSize.en }}</label>
                 <input v-model="shirtSize" type="text" id="onboarding-shirt-size" class="onboarding-input" placeholder="M, L, XL">
               </div>
               <div class="onboarding-input-group">
-                <label class="onboarding-label">typical pants size</label>
+                <label class="onboarding-label">{{ isNL ? T.pantsSize.nl : T.pantsSize.en }}</label>
                 <input v-model="pantsSize" type="text" id="onboarding-pants-size" class="onboarding-input" placeholder="32, 34, 36">
               </div>
             </div>
 
             <div class="onboarding-input-group">
-              <label class="onboarding-label">shoe size</label>
+              <label class="onboarding-label">{{ isNL ? T.shoeSize.nl : T.shoeSize.en }}</label>
               <input v-model="shoeSize" type="text" id="onboarding-shoe-size" class="onboarding-input" placeholder="42, 43, 44">
             </div>
           </div>
 
-          <button class="onboarding-btn-primary" @click="nextStep">continue</button>
-          <button class="onboarding-btn-back" @click="prevStep">back</button>
+          <button class="onboarding-btn-primary" @click="nextStep">{{ isNL ? T.continueBtn.nl : T.continueBtn.en }}</button>
+          <button class="onboarding-btn-back" @click="prevStep">{{ isNL ? T.back.nl : T.back.en }}</button>
         </div>
       </div>
 
       <!-- Step 6: Body Type -->
       <div class="onboarding-step" :class="{ active: currentStep === 6 }" data-step="6">
         <div class="onboarding-content">
-          <h2 class="onboarding-title">your body type</h2>
-          <p class="onboarding-subtitle">so we can help you find pieces that make you look good, and feel good</p>
+          <h2 class="onboarding-title">{{ isNL ? T.bodyTypeTitle.nl : T.bodyTypeTitle.en }}</h2>
+          <p class="onboarding-subtitle">{{ isNL ? T.bodyTypeSubtitle.nl : T.bodyTypeSubtitle.en }}</p>
 
           <div class="onboarding-body-types">
             <button class="body-type-option" :class="{ selected: bodyType === 'triangle' }" data-body-type="triangle" @click="bodyType = 'triangle'">
@@ -205,7 +205,7 @@
                   <path d="M45 30 Q55 35 52 45" stroke="#333" stroke-width="1.5" fill="none"/>
                 </svg>
               </div>
-              <span class="body-type-label">triangle</span>
+              <span class="body-type-label">{{ isNL ? T.bodyTriangle.nl : T.bodyTriangle.en }}</span>
             </button>
 
             <button class="body-type-option" :class="{ selected: bodyType === 'inverted-triangle' }" data-body-type="inverted-triangle" @click="bodyType = 'inverted-triangle'">
@@ -217,7 +217,7 @@
                   <path d="M50 30 Q60 35 57 45" stroke="#333" stroke-width="1.5" fill="none"/>
                 </svg>
               </div>
-              <span class="body-type-label">inverted triangle</span>
+              <span class="body-type-label">{{ isNL ? T.bodyInvertedTriangle.nl : T.bodyInvertedTriangle.en }}</span>
             </button>
 
             <button class="body-type-option" :class="{ selected: bodyType === 'rectangle' }" data-body-type="rectangle" @click="bodyType = 'rectangle'">
@@ -229,7 +229,7 @@
                   <path d="M42 30 Q52 35 49 45" stroke="#333" stroke-width="1.5" fill="none"/>
                 </svg>
               </div>
-              <span class="body-type-label">rectangle</span>
+              <span class="body-type-label">{{ isNL ? T.bodyRectangle.nl : T.bodyRectangle.en }}</span>
             </button>
 
             <button class="body-type-option" :class="{ selected: bodyType === 'oval' }" data-body-type="oval" @click="bodyType = 'oval'">
@@ -241,7 +241,7 @@
                   <path d="M48 40 Q58 45 55 55" stroke="#333" stroke-width="1.5" fill="none"/>
                 </svg>
               </div>
-              <span class="body-type-label">oval</span>
+              <span class="body-type-label">{{ isNL ? T.bodyOval.nl : T.bodyOval.en }}</span>
             </button>
 
             <button class="body-type-option" :class="{ selected: bodyType === 'hourglass' }" data-body-type="hourglass" @click="bodyType = 'hourglass'">
@@ -253,66 +253,66 @@
                   <path d="M48 30 Q58 35 55 45" stroke="#333" stroke-width="1.5" fill="none"/>
                 </svg>
               </div>
-              <span class="body-type-label">hourglass</span>
+              <span class="body-type-label">{{ isNL ? T.bodyHourglass.nl : T.bodyHourglass.en }}</span>
             </button>
           </div>
 
-          <button class="onboarding-btn-primary" @click="nextStep">continue</button>
-          <button class="onboarding-btn-back" @click="prevStep">back</button>
+          <button class="onboarding-btn-primary" @click="nextStep">{{ isNL ? T.continueBtn.nl : T.continueBtn.en }}</button>
+          <button class="onboarding-btn-back" @click="prevStep">{{ isNL ? T.back.nl : T.back.en }}</button>
         </div>
       </div>
 
       <!-- Step 7: How did you hear about us -->
       <div class="onboarding-step" :class="{ active: currentStep === 7 }" data-step="7">
         <div class="onboarding-content">
-          <h2 class="onboarding-title">how did you hear about demat?</h2>
-          <p class="onboarding-subtitle">so we know which of our efforts are actually paying off</p>
+          <h2 class="onboarding-title">{{ isNL ? T.referralTitle.nl : T.referralTitle.en }}</h2>
+          <p class="onboarding-subtitle">{{ isNL ? T.referralSubtitle.nl : T.referralSubtitle.en }}</p>
 
           <div class="onboarding-checkboxes">
             <label class="checkbox-option">
               <input v-model="referralSources" type="checkbox" name="referral" value="instagram">
               <span class="checkbox-custom"></span>
-              <span class="checkbox-label">instagram</span>
+              <span class="checkbox-label">{{ isNL ? T.refInstagram.nl : T.refInstagram.en }}</span>
             </label>
             <label class="checkbox-option">
               <input v-model="referralSources" type="checkbox" name="referral" value="tiktok">
               <span class="checkbox-custom"></span>
-              <span class="checkbox-label">tiktok</span>
+              <span class="checkbox-label">{{ isNL ? T.refTiktok.nl : T.refTiktok.en }}</span>
             </label>
             <label class="checkbox-option">
               <input v-model="referralSources" type="checkbox" name="referral" value="facebook">
               <span class="checkbox-custom"></span>
-              <span class="checkbox-label">facebook</span>
+              <span class="checkbox-label">{{ isNL ? T.refFacebook.nl : T.refFacebook.en }}</span>
             </label>
             <label class="checkbox-option">
               <input v-model="referralSources" type="checkbox" name="referral" value="pinterest">
               <span class="checkbox-custom"></span>
-              <span class="checkbox-label">pinterest</span>
+              <span class="checkbox-label">{{ isNL ? T.refPinterest.nl : T.refPinterest.en }}</span>
             </label>
             <label class="checkbox-option">
               <input v-model="referralSources" type="checkbox" name="referral" value="friends-family">
               <span class="checkbox-custom"></span>
-              <span class="checkbox-label">friends or family</span>
+              <span class="checkbox-label">{{ isNL ? T.refFriendsFamily.nl : T.refFriendsFamily.en }}</span>
             </label>
             <label class="checkbox-option">
               <input v-model="referralSources" type="checkbox" name="referral" value="google">
               <span class="checkbox-custom"></span>
-              <span class="checkbox-label">google search</span>
+              <span class="checkbox-label">{{ isNL ? T.refGoogle.nl : T.refGoogle.en }}</span>
             </label>
             <label class="checkbox-option">
               <input v-model="referralSources" type="checkbox" name="referral" value="influencer">
               <span class="checkbox-custom"></span>
-              <span class="checkbox-label">influencer</span>
+              <span class="checkbox-label">{{ isNL ? T.refInfluencer.nl : T.refInfluencer.en }}</span>
             </label>
             <label class="checkbox-option">
               <input v-model="referralSources" type="checkbox" name="referral" value="other">
               <span class="checkbox-custom"></span>
-              <span class="checkbox-label">other</span>
+              <span class="checkbox-label">{{ isNL ? T.refOther.nl : T.refOther.en }}</span>
             </label>
           </div>
 
-          <button class="onboarding-btn-primary" :class="{ loading: submitting }" :disabled="submitting" @click="submit">continue</button>
-          <button class="onboarding-btn-back" @click="prevStep">back</button>
+          <button class="onboarding-btn-primary" :class="{ loading: submitting }" :disabled="submitting" @click="submit">{{ isNL ? T.continueBtn.nl : T.continueBtn.en }}</button>
+          <button class="onboarding-btn-back" @click="prevStep">{{ isNL ? T.back.nl : T.back.en }}</button>
         </div>
       </div>
 
@@ -335,9 +335,9 @@
               <path d="M40 58 L60 48 L80 58" stroke="#4b073f" stroke-width="1.5" fill="none" stroke-linecap="round"/>
             </svg>
           </div>
-          <h2 class="onboarding-title">thank you!</h2>
-          <p class="onboarding-subtitle">your profile is now complete. time to go shopping!</p>
-          <button class="onboarding-btn-primary" @click="complete">start shopping</button>
+          <h2 class="onboarding-title">{{ isNL ? T.completeTitle.nl : T.completeTitle.en }}</h2>
+          <p class="onboarding-subtitle">{{ isNL ? T.completeSubtitle.nl : T.completeSubtitle.en }}</p>
+          <button class="onboarding-btn-primary" @click="complete">{{ isNL ? T.startShopping.nl : T.startShopping.en }}</button>
         </div>
       </div>
 
@@ -367,6 +367,82 @@ const { getToken } = useAuth()
 const { locale } = useI18n()
 const isNL = computed(() => locale.value.startsWith('nl'))
 const { apiBase, geoapifyKey } = useRuntimeConfig().public
+
+const T = {
+  progressWelcome: { en: 'welcome', nl: 'welkom' },
+  progressYourInfo: { en: 'your info', nl: 'jouw gegevens' },
+  progressYourProfile: { en: 'your profile', nl: 'jouw profiel' },
+  welcomeTitle: { en: 'welcome to the club!', nl: 'welkom bij de club!' },
+  welcomeSubtitle: {
+    en: "you're now a member of our shared closet. let's quickly set up your profile for a better experience; you can adjust it later.",
+    nl: "you're now a member of our shared closet. let's quickly set up your profile for a better experience; you can adjust it later.",
+  },
+  continueBtn: { en: 'continue', nl: 'doorgaan' },
+  doLater: { en: "i'll do this later", nl: 'ik doe dit later' },
+  back: { en: 'back', nl: 'terug' },
+  nameTitle: { en: "what's your name?", nl: 'wat is je naam?' },
+  nameSubtitle: { en: 'so we know what to call you', nl: 'zodat we weten hoe we je kunnen noemen' },
+  firstName: { en: 'first name', nl: 'voornaam' },
+  phFirstName: { en: 'enter your first name', nl: 'vul je voornaam in' },
+  lastName: { en: 'last name', nl: 'achternaam' },
+  phLastName: { en: 'enter your last name', nl: 'vul je achternaam in' },
+  contactTitle: { en: 'contact & address', nl: 'contact & adres' },
+  contactSubtitle: { en: 'so we know where to reach you', nl: 'zodat we weten waar we je kunnen bereiken' },
+  phoneNumber: { en: 'phone number', nl: 'telefoonnummer' },
+  findAddress: { en: 'find your address', nl: 'vind je adres' },
+  phAddressSearch: { en: 'start typing your address...', nl: 'typ je adres in...' },
+  street: { en: 'street', nl: 'straat' },
+  phStreet: { en: 'street name', nl: 'straatnaam' },
+  houseNumber: { en: 'house number', nl: 'huisnummer' },
+  aptUnit: { en: 'apt / unit', nl: 'apt / unit' },
+  phOptional: { en: 'optional', nl: 'optioneel' },
+  postalCode: { en: 'postal code', nl: 'postcode' },
+  city: { en: 'city', nl: 'stad' },
+  phCity: { en: 'city', nl: 'stad' },
+  birthdayTitle: { en: 'your birthday', nl: 'jouw verjaardag' },
+  birthdaySubtitle: { en: 'so you can receive special treatment', nl: 'zodat je een speciale behandeling kunt krijgen' },
+  dateOfBirth: { en: 'date of birth', nl: 'geboortedatum' },
+  sizesTitle: { en: 'your sizes', nl: 'jouw maten' },
+  sizesSubtitle: {
+    en: 'so we can make sure to have plenty of options that fit you',
+    nl: 'so we can make sure to have plenty of options that fit you',
+  },
+  height: { en: 'height (cm)', nl: 'lengte (cm)' },
+  preferredFit: { en: 'preferred fit', nl: 'voorkeurspasvorm' },
+  selectFit: { en: 'select fit...', nl: 'kies pasvorm...' },
+  fitSlim: { en: 'slim', nl: 'slim' },
+  fitRegular: { en: 'regular', nl: 'regular' },
+  fitOversized: { en: 'oversized', nl: 'oversized' },
+  shirtSize: { en: 'typical shirt size', nl: 'gebruikelijke shirtmaat' },
+  pantsSize: { en: 'typical pants size', nl: 'gebruikelijke broekmaat' },
+  shoeSize: { en: 'shoe size', nl: 'schoenmaat' },
+  bodyTypeTitle: { en: 'your body type', nl: 'jouw lichaamstype' },
+  bodyTypeSubtitle: {
+    en: 'so we can help you find pieces that make you look good, and feel good',
+    nl: 'so we can help you find pieces that make you look good, and feel good',
+  },
+  bodyTriangle: { en: 'triangle', nl: 'driehoek' },
+  bodyInvertedTriangle: { en: 'inverted triangle', nl: 'omgekeerde driehoek' },
+  bodyRectangle: { en: 'rectangle', nl: 'rechthoek' },
+  bodyOval: { en: 'oval', nl: 'ovaal' },
+  bodyHourglass: { en: 'hourglass', nl: 'zandloper' },
+  referralTitle: { en: 'how did you hear about demat?', nl: 'hoe heb je over demat gehoord?' },
+  referralSubtitle: {
+    en: 'so we know which of our efforts are actually paying off',
+    nl: 'so we know which of our efforts are actually paying off',
+  },
+  refInstagram: { en: 'instagram', nl: 'instagram' },
+  refTiktok: { en: 'tiktok', nl: 'tiktok' },
+  refFacebook: { en: 'facebook', nl: 'facebook' },
+  refPinterest: { en: 'pinterest', nl: 'pinterest' },
+  refFriendsFamily: { en: 'friends or family', nl: 'vrienden of familie' },
+  refGoogle: { en: 'google search', nl: 'google search' },
+  refInfluencer: { en: 'influencer', nl: 'influencer' },
+  refOther: { en: 'other', nl: 'anders' },
+  completeTitle: { en: 'thank you!', nl: 'bedankt!' },
+  completeSubtitle: { en: 'your profile is now complete. time to go shopping!', nl: 'je profiel is nu compleet. tijd om te gaan shoppen!' },
+  startShopping: { en: 'start shopping', nl: 'begin met shoppen' },
+} as const
 
 // Shared with plugins/onboarding.client.ts (window.openOnboardingModal resets step to 1).
 const isOpen = useState('onboarding-modal-open', () => false)

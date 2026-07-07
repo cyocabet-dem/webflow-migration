@@ -4,3 +4,10 @@
 html.auth-pending [data-auth-gate] {
   visibility: hidden !important;
 }
+
+/* Collapse variant: removes the element from layout while auth is pending,
+   for gated elements whose reserved space would otherwise show as a blank gap
+   (e.g. the reservations link in the account sidenav). */
+html.auth-pending [data-auth-gate="collapse"] {
+  display: none !important;
+}

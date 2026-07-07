@@ -312,7 +312,7 @@ async function updateSizeProfile() {
 
     const customAttributes: { key: string, value: any }[] = []
     if (formData.heightCm) {
-      customAttributes.push({ key: 'height_cm', value: formData.heightCm })
+      customAttributes.push({ key: 'height_cm', value: String(formData.heightCm) })
     }
     if (formData.preferredFit) {
       customAttributes.push({ key: 'preferred_fit', value: formData.preferredFit })
@@ -396,7 +396,7 @@ onBeforeUnmount(() => {
                 </span>
                 <span class="lang-en">my rentals</span><span class="lang-nl">mijn huurartikelen</span>
               </a>
-              <a v-show="!isShippingMember" href="/reservations" class="account-sidenav-link" :class="{ active: isSidenavActive('/reservations') }" data-nav="reservations" data-auth-gate>
+              <a v-show="!isShippingMember" href="/reservations" class="account-sidenav-link" :class="{ active: isSidenavActive('/reservations') }" data-nav="reservations" data-auth-gate="collapse">
                 <span class="account-sidenav-icon">
                   <svg viewBox="0 0 24 24">
                     <rect x="3" y="4" width="18" height="18" rx="2"></rect>

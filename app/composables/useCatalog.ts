@@ -705,6 +705,20 @@ export function useCatalog() {
   // URL SYNC (same param names + repeated-param format as the old site)
   // ============================================================
 
+  let lastWrittenQuery = ''
+
+  function serializeQuery(query: Record<string, unknown>): string {
+    return Object.keys(query)
+      .sort()
+      .map((key) =>
+        getAllParam(query[key])
+          .map((v) => `${key}=${encodeURIComponent(v)}`)
+          .join('&'),
+      )
+      .filter(Boolean)
+      .join('&')
+  }
+
   function syncURL() {
     const query: Record<string, string | string[]> = { page: String(currentPage.value) }
     if (searchQuery.value) query.q = searchQuery.value
@@ -718,12 +732,65 @@ export function useCatalog() {
       if (selected[def.type]!.length) query[def.type] = [...selected[def.type]!]
     })
 
+    lastWrittenQuery = serializeQuery(query)
     router.replace({ query })
   }
 
   function getAllParam(value: unknown): string[] {
     const arr = Array.isArray(value) ? value : value != null ? [value] : []
     return arr.filter(Boolean).map(String)
+  }
+
+  function applySelectionsFromQuery(url: Record<string, unknown>) {
+    selected.categories = getAllParam(url.categories)
+    selected.subcategories = getAllParam(url.subcategories)
+    selected.colors = getAllParam(url.colors)
+    selected.size = getAllParam(url.size)
+    selected.status = getAllParam(url.status)
+    EXTRA_FILTERS.forEach((def) => {
+      selected[def.type] = getAllParam(url[def.type])
+    })
+
+    const page = parseInt(String(url.page || '1'), 10)
+    currentPage.value = Number.isFinite(page) && page > 0 ? page : 1
+  }
+
+  // Re-initialize from the URL when the query changes externally (navbar links,
+  // back/forward) while on the clothing route. syncURL records what it writes so
+  // its own router.replace is skipped here and cannot cause a feedback loop.
+  async function applyRouteQuery(url: Record<string, unknown>) {
+    const urlQ = typeof url.q === 'string' ? url.q : ''
+    if (urlQ !== searchQuery.value) {
+      searchQuery.value = urlQ
+      searchInputValue.value = urlQ
+      if (urlQ) {
+        catalogData.value = await fetchCatalog(urlQ)
+      } else {
+        catalogData.value = loadCatalog() || (await fetchCatalog())
+        saveCatalog(catalogData.value!)
+      }
+    }
+
+    applySelectionsFromQuery(url)
+    syncURL()
+    scrollTop()
+  }
+
+  if (import.meta.client) {
+    watch(
+      () => route.query,
+      (newQuery) => {
+        const path = route.path.replace(/\/+$/, '') || '/'
+        if (path !== '/clothing' && path !== '/nl/clothing') return
+        if (!loaded.value) return
+        const incoming = serializeQuery(newQuery as Record<string, unknown>)
+        if (incoming === lastWrittenQuery) return
+        lastWrittenQuery = incoming
+        applyRouteQuery(newQuery as Record<string, unknown>).catch((err) => {
+          console.error('[Catalog] Failed to apply URL filters:', err)
+        })
+      },
+    )
   }
 
   // ============================================================
@@ -882,17 +949,7 @@ export function useCatalog() {
       await Promise.all(initPromises)
 
       // Apply URL filters + status
-      selected.categories = getAllParam(url.categories)
-      selected.subcategories = getAllParam(url.subcategories)
-      selected.colors = getAllParam(url.colors)
-      selected.size = getAllParam(url.size)
-      selected.status = getAllParam(url.status)
-      EXTRA_FILTERS.forEach((def) => {
-        selected[def.type] = getAllParam(url[def.type])
-      })
-
-      const page = parseInt(String(url.page || '1'), 10)
-      currentPage.value = Number.isFinite(page) && page > 0 ? page : 1
+      applySelectionsFromQuery(url)
 
       loaded.value = true
       syncURL()

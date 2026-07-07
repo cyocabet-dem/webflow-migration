@@ -115,7 +115,7 @@ function handleContactFormSubmit() {
                     <div class="label-text-ml separator hours mobile">:</div>
                   </div>
                   <div class="label-text-ml separator hours hidden">:</div>
-                  <div class="paragraph-centered contact"><span class="lang-en">12:00 - 14:00 (vinted pick-up/drop-off)</span><span class="lang-nl">Gesloten</span></div>
+                  <div class="paragraph-centered contact"><span class="lang-en">12:00 - 14:00 (vinted pick-up/drop-off)</span><span class="lang-nl">12:00 - 14:00 (vinted ophalen/inleveren)</span></div>
                 </div>
                 <div class="div-row-ml hours">
                   <div class="label-text-ml"><span class="lang-en">Wednesday</span><span class="lang-nl">Woensdag</span></div>
@@ -140,10 +140,10 @@ function handleContactFormSubmit() {
                 <div class="div-row-ml hours">
                   <div class="label-text-ml"><span class="lang-en">Sunday</span><span class="lang-nl">zondag</span></div>
                   <div class="label-text-ml separator hours">:</div>
-                  <div class="paragraph-centered content"><span class="lang-en">12:00 - 16:00</span><span class="lang-nl">Gesloten</span></div>
+                  <div class="paragraph-centered content"><span class="lang-en">12:00 - 16:00</span><span class="lang-nl">12:00 - 16:00</span></div>
                 </div>
                 <div class="div-row-ml hours">
-                  <div class="paragraph-centered content special">*due to the heat, the showroom is closed 26-28 June 2026</div>
+                  <div class="paragraph-centered content special"><span class="lang-en">*due to the heat, the showroom is closed 26-28 June 2026</span><span class="lang-nl">*vanwege de hitte is de showroom gesloten van 26-28 juni 2026</span></div>
                 </div>
               </div>
             </div>
