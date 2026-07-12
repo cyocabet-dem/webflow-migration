@@ -43,6 +43,8 @@ export default defineNuxtConfig({
     // Native-app-only chrome (safe areas); every rule is scoped to body.native-app,
     // which only the Capacitor shells set — inert in browsers.
     '~/assets/css/8-native-app.css',
+    // Partner platform shared styles (all .pp- prefixed; inert unless partner markup renders).
+    '~/assets/css/9-partner.css',
   ],
 
   app: {
@@ -87,8 +89,19 @@ export default defineNuxtConfig({
 
   i18n: {
     locales: [
-      { code: 'en', language: 'en', file: 'en.json', name: 'English' },
-      { code: 'nl', language: 'nl-NL', file: 'nl.json', name: 'Nederlands' },
+      // One file per message domain so features can grow without contending over en.json.
+      {
+        code: 'en',
+        language: 'en',
+        files: ['en.json', 'partner.en.json', 'partner-dashboard.en.json', 'partner-admin.en.json'],
+        name: 'English',
+      },
+      {
+        code: 'nl',
+        language: 'nl-NL',
+        files: ['nl.json', 'partner.nl.json', 'partner-dashboard.nl.json', 'partner-admin.nl.json'],
+        name: 'Nederlands',
+      },
     ],
     defaultLocale: 'en',
     strategy: 'prefix_except_default',

@@ -12,6 +12,8 @@
     <CartReservationModal />
     <CartUpgradeModal />
     <CartReservationSuccessModal />
+    <PartnerCartPanel />
+    <PartnerCheckoutModal />
     <ConsentBanner />
     <ConsentCookieWidget />
   </div>

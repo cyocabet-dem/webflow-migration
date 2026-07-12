@@ -12,6 +12,11 @@ const purchaseCartNavRef = ref<HTMLElement | null>(null)
 
 const { isAuthenticated, user, firstName, hasActiveMembership, openAuthModal, logout } = useAuth()
 
+// Partner platform (Courtney-sanctioned new scope, 2026-07-12): links appear only when the
+// partner backend is live (partnerUiEnabled) / the signed-in user has the matching role.
+// v-show (not :class/:style) per the hydration visibility rule.
+const { partnerUiEnabled, isPartnerUser, isAdminUser } = usePartnerPlatform()
+
 const displayName = computed(() => firstName.value || user.value?.name || user.value?.email || 'User')
 
 function togglePurchaseCartDropdown() {
@@ -133,6 +138,9 @@ onUnmounted(() => {
                   <a href="/donations-credits" class="link-account-menu-option"><span class="lang-en">donations &amp; credits</span><span class="lang-nl">donaties &amp; tegoeden</span></a>
                   <a href="/purchases" class="link-account-menu-option"><span class="lang-en">purchases</span><span class="lang-nl">aankopen</span></a>
                   <a href="/my-membership" class="link-account-menu-option"><span class="lang-en">membership</span><span class="lang-nl">lidmaatschap</span></a>
+                  <a href="/partner-activity" class="link-account-menu-option" v-show="partnerUiEnabled"><span class="lang-en">partner items</span><span class="lang-nl">partneritems</span></a>
+                  <a href="/partner" class="link-account-menu-option" v-show="isPartnerUser"><span class="lang-en">partner dashboard</span><span class="lang-nl">partnerdashboard</span></a>
+                  <a href="/admin" class="link-account-menu-option" v-show="isAdminUser"><span class="lang-en">demat admin</span><span class="lang-nl">demat-beheer</span></a>
                 </div>
                 <div class="div-spacer-account-nav"></div>
                 <div class="auth0-btn sign-out w-embed">

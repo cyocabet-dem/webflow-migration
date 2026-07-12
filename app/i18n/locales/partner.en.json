@@ -1,0 +1,18 @@
+{
+  "partner": {
+    "badge": "partner",
+    "partnerItem": "partner item",
+    "notInMembership": "not included in your Demat membership",
+    "reserve": "reserve",
+    "reserveToBuy": "reserve to buy",
+    "reserveToRent": "reserve to rent",
+    "memberPrice": "member price",
+    "regularPrice": "regular price",
+    "perTwoWeeks": "per 2 weeks",
+    "soldBy": "sold by",
+    "visitStore": "visit the store to try it on — you only pay there",
+    "holdWindow": "reserved for you for 7 days",
+    "loading": "loading…",
+    "unavailable": "this item is currently unavailable"
+  }
+}

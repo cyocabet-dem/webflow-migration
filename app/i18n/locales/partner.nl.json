@@ -1,0 +1,18 @@
+{
+  "partner": {
+    "badge": "partner",
+    "partnerItem": "partneritem",
+    "notInMembership": "niet inbegrepen in je Demat-lidmaatschap",
+    "reserve": "reserveren",
+    "reserveToBuy": "reserveren om te kopen",
+    "reserveToRent": "reserveren om te huren",
+    "memberPrice": "ledenprijs",
+    "regularPrice": "normale prijs",
+    "perTwoWeeks": "per 2 weken",
+    "soldBy": "verkocht door",
+    "visitStore": "kom passen in de winkel — je betaalt pas daar",
+    "holdWindow": "7 dagen voor je gereserveerd",
+    "loading": "laden…",
+    "unavailable": "dit item is momenteel niet beschikbaar"
+  }
+}
