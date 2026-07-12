@@ -52,6 +52,10 @@ function productHref(sku: string): string {
 }
 
 async function loadOutfits() {
+  // Re-entrant (native in-place login re-triggers the watch below): show the
+  // loading state, not a stale empty state, while the fetch runs.
+  loading.value = true
+  error.value = null
   const token = await getToken()
   if (!token) {
     loading.value = false
@@ -77,6 +81,8 @@ async function loadOutfits() {
 }
 
 async function loadHiddenItems() {
+  hiddenLoading.value = true
+  hiddenError.value = null
   const token = await getToken()
   if (!token) {
     hiddenLoading.value = false
@@ -98,9 +104,11 @@ async function loadHiddenItems() {
 }
 
 async function removeOutfit(outfit: Outfit) {
-  // Optimistic removal — restore on failure.
-  const prev = outfits.value
-  outfits.value = prev.filter((o) => o.id !== outfit.id)
+  // Optimistic removal — on failure re-insert just this outfit (restoring a
+  // whole-array snapshot would resurrect rows deleted concurrently).
+  const index = outfits.value.findIndex((o) => o.id === outfit.id)
+  if (index === -1) return
+  outfits.value = outfits.value.filter((o) => o.id !== outfit.id)
   const token = await getToken()
   if (!token) return
   try {
@@ -112,14 +120,18 @@ async function removeOutfit(outfit: Outfit) {
     if (!res.ok && res.status !== 404) throw new Error(`HTTP ${res.status}`)
   } catch (err) {
     console.error('[MyOutfits] Remove failed:', err)
-    outfits.value = prev
+    const restored = [...outfits.value]
+    restored.splice(Math.min(index, restored.length), 0, outfit)
+    outfits.value = restored
   }
 }
 
 async function unhideItem(item: OutfitItem) {
-  // Optimistic removal — restore on failure.
-  const prev = hiddenItems.value
-  hiddenItems.value = prev.filter((i) => i.id !== item.id)
+  // Optimistic removal — on failure re-insert just this item (restoring a
+  // whole-array snapshot would resurrect rows deleted concurrently).
+  const index = hiddenItems.value.findIndex((i) => i.id === item.id)
+  if (index === -1) return
+  hiddenItems.value = hiddenItems.value.filter((i) => i.id !== item.id)
   const token = await getToken()
   if (!token) return
   try {
@@ -130,7 +142,9 @@ async function unhideItem(item: OutfitItem) {
     if (!res.ok && res.status !== 404) throw new Error(`HTTP ${res.status}`)
   } catch (err) {
     console.error('[MyOutfits] Unhide failed:', err)
-    hiddenItems.value = prev
+    const restored = [...hiddenItems.value]
+    restored.splice(Math.min(index, restored.length), 0, item)
+    hiddenItems.value = restored
   }
 }
 
@@ -141,12 +155,14 @@ const formattedDate = (outfit: Outfit): string => {
   return d.toLocaleDateString()
 }
 
-// Wait for the Auth0 plugin, then load (or show the logged-out state).
+// Wait for the Auth0 plugin, then load (or show the logged-out state). Also
+// keyed on isAuthenticated: in the native apps login completes in place via
+// the appUrlOpen deep link — no page reload, so authReady alone never refires.
 watch(
-  authReady,
-  (ready) => {
+  [authReady, isAuthenticated],
+  ([ready, authed]) => {
     if (!ready) return
-    if (isAuthenticated.value) {
+    if (authed) {
       loadOutfits()
       loadHiddenItems()
     } else {

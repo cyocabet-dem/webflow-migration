@@ -28,6 +28,24 @@ const { t } = useI18n()
 // Top 3 cards rendered; index 0 is the interactive top card.
 const visible = computed(() => props.items.slice(0, 3))
 
+// Distinguish "swiped through everything" from "nothing to show at all"
+// (every item wishlisted/hidden): the latter gets the noItems end state,
+// where restart would just rebuild the same empty list.
+const everHadItems = ref(props.items.length > 0)
+watch(
+  () => props.items.length,
+  (len) => {
+    if (len > 0) everHadItems.value = true
+  },
+)
+
+function onRestart() {
+  // If the rebuild comes back empty (everything excluded since), fall
+  // through to the noItems state instead of a restart that does nothing.
+  everHadItems.value = false
+  emit('restart')
+}
+
 const cardRefs = new Map<number, InstanceType<typeof SwipeCard>>()
 
 function setCardRef(id: number, el: unknown) {
@@ -74,11 +92,14 @@ function onSwiped(item: SwipeItem, direction: 'left' | 'right') {
         />
       </template>
       <div v-else class="swipe-deck-end">
-        <div class="swipe-deck-end-title">{{ t('styleMatch.deckEmptyTitle') }}</div>
-        <p class="swipe-deck-end-text">{{ t('styleMatch.deckEmptyText') }}</p>
+        <template v-if="everHadItems">
+          <div class="swipe-deck-end-title">{{ t('styleMatch.deckEmptyTitle') }}</div>
+          <p class="swipe-deck-end-text">{{ t('styleMatch.deckEmptyText') }}</p>
+        </template>
+        <p v-else class="swipe-deck-end-text">{{ t('styleMatch.noItems') }}</p>
         <div class="swipe-deck-end-actions">
-          <button type="button" class="swipe-deck-end-btn primary" @click="emit('restart')">{{ t('styleMatch.restart') }}</button>
-          <button type="button" class="swipe-deck-end-btn" @click="emit('change-categories')">{{ t('styleMatch.backToSetup') }}</button>
+          <button v-if="everHadItems" type="button" class="swipe-deck-end-btn primary" @click="onRestart">{{ t('styleMatch.restart') }}</button>
+          <button type="button" class="swipe-deck-end-btn" :class="{ primary: !everHadItems }" @click="emit('change-categories')">{{ t('styleMatch.backToSetup') }}</button>
         </div>
       </div>
     </div>

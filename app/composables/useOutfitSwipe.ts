@@ -225,7 +225,17 @@ export function useOutfitSwipe() {
         return
       }
       const data = await res.json()
-      if (Array.isArray(data)) hiddenIds.value = data.map(Number)
+      if (Array.isArray(data)) {
+        hiddenIds.value = data.map(Number)
+        // With a warm catalog cache the user can start swiping before this
+        // response lands — prune hidden items from any already-built decks.
+        const hidden = new Set(hiddenIds.value)
+        decks.value.forEach((deck) => {
+          if (deck.items.some((i) => hidden.has(i.id))) {
+            deck.items = deck.items.filter((i) => !hidden.has(i.id))
+          }
+        })
+      }
     } catch (err) {
       console.error('[StyleMatch] Hidden ids fetch error:', err)
     }
@@ -267,8 +277,12 @@ export function useOutfitSwipe() {
     deck.items = buildDeckItems(deck.category)
   }
 
-  function popTop(deck: SwipeDeck): SwipeItem | undefined {
-    return deck.items.shift()
+  function removeFromDeck(deck: SwipeDeck, item: SwipeItem) {
+    // By id, not by position: the swiped card only emits after its 260ms leave
+    // animation, and an undo (or a failed hide) can restore another card to the
+    // top of the deck in that window — shift() would remove the restored card
+    // and strand the off-screen one as an inert top card.
+    deck.items = deck.items.filter((i) => i.id !== item.id)
   }
 
   // ============================================================
@@ -440,7 +454,7 @@ export function useOutfitSwipe() {
     dispose,
     buildDecks,
     restartDeck,
-    popTop,
+    removeFromDeck,
     hideItem,
     undoHide,
     seedSavedPairs,

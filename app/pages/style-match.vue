@@ -129,13 +129,13 @@ const sections = computed<SwipeSection[]>(() => {
 // SWIPE ACTIONS
 // ============================================================
 
-function onSwipeLeft(deck: SwipeDeckState) {
+function onSwipeLeft(deck: SwipeDeckState, item: SwipeItem) {
   // Skip is purely visual — no persistence of any kind.
-  swipe.popTop(deck)
+  swipe.removeFromDeck(deck, item)
 }
 
 async function onSwipeRight(deck: SwipeDeckState, item: SwipeItem) {
-  swipe.popTop(deck)
+  swipe.removeFromDeck(deck, item)
   // Existing wishlist flow, optimistic update included.
   await swipe.wishlist.addToWishlist(item.id)
 }
@@ -324,7 +324,7 @@ onBeforeUnmount(() => {
             :items="section.deck!.items"
             :allow-right="isAuthenticated"
             :status-label="swipe.formatStatus"
-            @swipe-left="onSwipeLeft(section.deck!)"
+            @swipe-left="(item) => onSwipeLeft(section.deck!, item)"
             @swipe-right="(item) => onSwipeRight(section.deck!, item)"
             @blocked-right="onBlockedRight"
             @hide="(item) => onHide(section.deck!, item)"
