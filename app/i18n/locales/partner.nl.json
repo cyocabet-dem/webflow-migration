@@ -13,6 +13,56 @@
     "visitStore": "kom passen in de winkel — je betaalt pas daar",
     "holdWindow": "7 dagen voor je gereserveerd",
     "loading": "laden…",
-    "unavailable": "dit item is momenteel niet beschikbaar"
+    "unavailable": "dit item is momenteel niet beschikbaar",
+    "pdp": {
+      "notice": "partneritem — niet inbegrepen in je Demat-lidmaatschap",
+      "brand": "merk",
+      "size": "maat",
+      "category": "categorie",
+      "condition": "staat",
+      "buyLabel": "kopen",
+      "rentLabel": "huren",
+      "rentalWeeks": "huur voor {min} tot {max} weken",
+      "rentalWeeksExact": "huur voor {weeks} weken",
+      "rentalDeposit": "plus {amount} terugbetaalbare huurborg",
+      "holdTitle": "{amount} reserveringswaarborg",
+      "holdBody": "wanneer je reserveert, reserveren we {amount} op je kaart — er wordt niets afgeschreven. de blokkering wordt vrijgegeven zodra je langskomt, en alleen geïnd als je niet komt opdagen.",
+      "comingSoon": "partneritems reserveren is er bijna — kom snel terug",
+      "added": "toegevoegd aan je reservering",
+      "statusReserved": "gereserveerd",
+      "statusRented": "verhuurd",
+      "pickupTitle": "ophalen & betalen",
+      "payAtStore": "je betaalt alleen in de winkel",
+      "viewTerms": "lees de voorwaarden van {name}",
+      "prevPhoto": "vorige foto",
+      "nextPhoto": "volgende foto",
+      "notFoundTitle": "item niet gevonden",
+      "notFoundBody": "dit partneritem bestaat niet of staat niet meer online.",
+      "backToPartners": "bekijk partnerwinkels"
+    },
+    "directory": {
+      "title": "partnerwinkels",
+      "subtitle": "onafhankelijke lokale winkels op Dematerialized — reserveer online, pas in de winkel en betaal pas daar",
+      "itemCount": "nog geen items | {n} item | {n} items",
+      "comingSoonTitle": "partnerwinkels komen eraan",
+      "comingSoonBody": "we werken samen met lokale winkels waar je van gaat houden. kom snel terug."
+    },
+    "storefront": {
+      "aboutTitle": "over",
+      "hoursTitle": "openingstijden",
+      "addressTitle": "adres",
+      "pickupTitle": "ophaalinstructies",
+      "memberDiscount": "leden krijgen hier {pct}% korting",
+      "itemsTitle": "items",
+      "itemsEmpty": "op dit moment geen items — kom snel terug.",
+      "termsTitle": "voorwaarden",
+      "termsEmpty": "nog geen voorwaarden gepubliceerd.",
+      "termsVersion": "versie {version} · geldig vanaf {date}",
+      "downloadPdf": "download pdf",
+      "errorTitle": "we kunnen deze winkel nu niet bereiken",
+      "errorBody": "de verbinding met ons partnerplatform is mislukt. probeer het zo weer.",
+      "retry": "probeer opnieuw",
+      "backToPartners": "alle partnerwinkels"
+    }
   }
 }

@@ -13,6 +13,56 @@
     "visitStore": "visit the store to try it on — you only pay there",
     "holdWindow": "reserved for you for 7 days",
     "loading": "loading…",
-    "unavailable": "this item is currently unavailable"
+    "unavailable": "this item is currently unavailable",
+    "pdp": {
+      "notice": "partner item — not included in your Demat membership",
+      "brand": "brand",
+      "size": "size",
+      "category": "category",
+      "condition": "condition",
+      "buyLabel": "buy",
+      "rentLabel": "rent",
+      "rentalWeeks": "rent for {min} to {max} weeks",
+      "rentalWeeksExact": "rent for {weeks} weeks",
+      "rentalDeposit": "plus a {amount} refundable rental deposit",
+      "holdTitle": "{amount} reservation hold",
+      "holdBody": "when you reserve, we authorise {amount} on your card — nothing is charged. the hold is released when you show up, and only captured if you don't.",
+      "comingSoon": "reserving partner items is almost here — check back soon",
+      "added": "added to your reservation",
+      "statusReserved": "reserved",
+      "statusRented": "rented out",
+      "pickupTitle": "pickup & payment",
+      "payAtStore": "you only pay at the store",
+      "viewTerms": "read {name}'s terms & conditions",
+      "prevPhoto": "previous photo",
+      "nextPhoto": "next photo",
+      "notFoundTitle": "item not found",
+      "notFoundBody": "this partner item doesn't exist or is no longer listed.",
+      "backToPartners": "browse partner shops"
+    },
+    "directory": {
+      "title": "partner shops",
+      "subtitle": "independent local shops on Dematerialized — reserve online, try on in store, and pay only there",
+      "itemCount": "no items yet | {n} item | {n} items",
+      "comingSoonTitle": "partner shops are coming soon",
+      "comingSoonBody": "we're teaming up with local stores you'll love. check back soon."
+    },
+    "storefront": {
+      "aboutTitle": "about",
+      "hoursTitle": "opening hours",
+      "addressTitle": "address",
+      "pickupTitle": "pickup instructions",
+      "memberDiscount": "members get {pct}% off here",
+      "itemsTitle": "items",
+      "itemsEmpty": "no items listed right now — check back soon.",
+      "termsTitle": "terms & conditions",
+      "termsEmpty": "no terms published yet.",
+      "termsVersion": "version {version} · effective from {date}",
+      "downloadPdf": "download pdf",
+      "errorTitle": "we can't reach this shop right now",
+      "errorBody": "the connection to our partner platform failed. please try again in a moment.",
+      "retry": "try again",
+      "backToPartners": "all partner shops"
+    }
   }
 }
