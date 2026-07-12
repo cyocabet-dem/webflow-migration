@@ -29,6 +29,9 @@ const ICONS = {
       <circle cx="12" cy="8" r="5"/>
       <path d="M20 21a8 8 0 0 0-16 0"/>
     </svg>`,
+  match: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/>
+    </svg>`,
 } as const
 
 interface NavItem {
@@ -46,6 +49,7 @@ const NAV_CONFIGS: Record<UserState, NavItem[]> = {
   guest: [
     { id: 'home', label: 'home', href: '/', icon: 'home' },
     { id: 'shop', label: 'shop', href: '/clothing', icon: 'shop' },
+    { id: 'style-match', label: 'style match', href: '/style-match', icon: 'match' },
     { id: 'how', label: 'how it works', href: '/how-it-works', icon: 'how' },
     { id: 'join', label: 'join', href: '/memberships', icon: 'join' },
     { id: 'account', label: 'log in', href: '#', icon: 'user', action: 'login' },
@@ -54,6 +58,7 @@ const NAV_CONFIGS: Record<UserState, NavItem[]> = {
   member_inactive: [
     { id: 'home', label: 'home', href: '/', icon: 'home' },
     { id: 'shop', label: 'shop', href: '/clothing', icon: 'shop' },
+    { id: 'style-match', label: 'style match', href: '/style-match', icon: 'match' },
     { id: 'wishlist', label: 'wishlist', href: '/wish-list', icon: 'wishlist' },
     { id: 'join', label: 'join', href: '/memberships', icon: 'join' },
     { id: 'account', label: 'account', href: '/account', icon: 'user' },
@@ -62,6 +67,7 @@ const NAV_CONFIGS: Record<UserState, NavItem[]> = {
   member_active: [
     { id: 'home', label: 'home', href: '/', icon: 'home' },
     { id: 'shop', label: 'shop', href: '/clothing', icon: 'shop' },
+    { id: 'style-match', label: 'style match', href: '/style-match', icon: 'match' },
     { id: 'wishlist', label: 'wish list', href: '/wish-list', icon: 'wishlist' },
     { id: 'faq', label: 'faq', href: '/faq', icon: 'faq' },
     { id: 'account', label: 'account', href: '/account', icon: 'user' },
@@ -81,7 +87,13 @@ function onNavAction(item: NavItem) {
   if (item.action === 'login') openAuthModal()
 }
 
-const items = computed(() => NAV_CONFIGS[userState.value] || NAV_CONFIGS.guest)
+const { t } = useI18n()
+
+const items = computed(() =>
+  (NAV_CONFIGS[userState.value] || NAV_CONFIGS.guest).map((item) =>
+    item.id === 'style-match' ? { ...item, label: t('nav.styleMatch') } : item,
+  ),
+)
 
 const route = useRoute()
 const activePath = computed(() => route.path.replace(/\/$/, '') || '/')
@@ -190,6 +202,19 @@ function isActive(item: NavItem): boolean {
     letter-spacing: 0.2px;
     line-height: 1;
     white-space: nowrap;
+  }
+  /* Six items (incl. style match) need a little less chrome on narrow phones */
+  @media (max-width: 420px) {
+    .mobile-nav-item {
+      min-width: 0;
+      padding: 6px 2px 4px;
+    }
+    .mobile-nav-label {
+      font-size: 10px;
+    }
+    .mobile-nav-inner {
+      padding: 10px 6px 8px;
+    }
   }
   /* Show only on mobile */
   @media (max-width: 767px) {

@@ -277,6 +277,12 @@ function goToItem(sku: string) {
               <p><span class="lang-en">start adding items to your wish list</span><span class="lang-nl">begin met items toevoegen aan je wishlist</span></p>
               <a href="/clothing" class="wishlist-empty-link"><span class="lang-en">shop now</span><span class="lang-nl">shop nu</span></a>
             </div>
+            <div v-if="!loading && isAuthenticated && !error" class="wishlist-outfits-link-row">
+              <a href="/my-outfits" class="wishlist-outfits-link">
+                {{ $t('wishList.outfitsLink') }}
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+              </a>
+            </div>
             <div v-if="!loading && isAuthenticated && !error && items.length > 0" class="wishlist-grid">
               <div v-for="item in items" :key="item.id" class="wishlist-item" @click="goToItem(item.sku)">
                 <div class="wishlist-image-wrapper">
@@ -383,6 +389,31 @@ function goToItem(sku: string) {
 .wishlist-empty-link:hover {
   background-color: #4b073f;
   color: #f6f8f9;
+}
+
+/* Cross-link to saved Style Match outfits */
+.wishlist-outfits-link-row {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 0 16px;
+}
+
+.wishlist-outfits-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Urbanist', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  text-transform: lowercase;
+  letter-spacing: 0.3px;
+  color: #a92296;
+  text-decoration: none;
+}
+
+.wishlist-outfits-link:hover {
+  color: #4b073f;
+  text-decoration: underline;
 }
 
 /* Grid */

@@ -130,6 +130,7 @@ onUnmounted(() => {
                   <a href="/profile" class="link-account-menu-option"><span class="lang-en">profile</span><span class="lang-nl">profiel</span></a>
                   <a href="/my-rentals" class="link-account-menu-option"><span class="lang-en">rentals</span><span class="lang-nl">verhuur</span></a>
                   <a href="/reservations" class="link-account-menu-option"><span class="lang-en">reservations</span><span class="lang-nl">reserveringen</span></a>
+                  <a href="/my-outfits" class="link-account-menu-option">{{ $t('nav.myOutfits') }}</a>
                   <a href="/donations-credits" class="link-account-menu-option"><span class="lang-en">donations &amp; credits</span><span class="lang-nl">donaties &amp; tegoeden</span></a>
                   <a href="/purchases" class="link-account-menu-option"><span class="lang-en">purchases</span><span class="lang-nl">aankopen</span></a>
                   <a href="/my-membership" class="link-account-menu-option"><span class="lang-en">membership</span><span class="lang-nl">lidmaatschap</span></a>
@@ -235,6 +236,7 @@ onUnmounted(() => {
         <a href="/clothing?page=1&amp;categories=Blazers&amp;categories=Pants" class="navbar-links">workwear</a>
         <a href="/clothing?page=1&amp;categories=Blazers&amp;categories=Dresses&amp;categories=Jeans&amp;categories=Pants&amp;categories=Skirts&amp;categories=Tops&amp;colors=gray&amp;colors=green&amp;colors=iridescent&amp;colors=multicolor&amp;colors=off-white&amp;colors=olive+green&amp;colors=red&amp;colors=white" class="navbar-links">date night</a>
         <a href="/clothing?page=1&amp;categories=Dresses&amp;categories=Jumpsuits&amp;categories=Sets&amp;categories=Tops" class="navbar-links">summer vibes</a>
+        <a href="/style-match" class="navbar-links">{{ $t('nav.styleMatch') }}</a>
         <a href="/also-this" class="navbar-links"><span class="lang-en">also this...</span><span class="lang-nl">ook dit...</span></a>
         <a href="#" class="navbar-links hidden bags"><span class="lang-en">bags</span><span class="lang-nl">tassen</span></a>
         <a href="/how-it-works" class="navbar-links dark-pink"><span class="lang-en">How it works</span><span class="lang-nl">Hoe het werkt</span></a>
