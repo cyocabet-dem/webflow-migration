@@ -69,7 +69,7 @@ async function loadOutfits() {
     const data = await res.json()
     outfits.value = (Array.isArray(data) ? data : []).map((o: any) => ({
       id: Number(o.id),
-      created: o.created || o.created_at || o.created_timestamp || '',
+      created: o.started_at || '',
       items: o.items || [],
     }))
   } catch (err) {
