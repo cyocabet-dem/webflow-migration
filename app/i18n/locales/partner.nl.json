@@ -14,6 +14,13 @@
     "holdWindow": "7 dagen voor je gereserveerd",
     "loading": "laden…",
     "unavailable": "dit item is momenteel niet beschikbaar",
+    "photos": {
+      "add": "foto's toevoegen",
+      "delete": "foto verwijderen",
+      "kindLabel": "fototype",
+      "tooLarge": "die foto is groter dan 8MB — verklein hem en probeer opnieuw",
+      "badType": "foto's moeten jpeg, png of webp zijn"
+    },
     "pdp": {
       "notice": "partneritem — niet inbegrepen in je Demat-lidmaatschap",
       "brand": "merk",

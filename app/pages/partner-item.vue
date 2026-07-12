@@ -93,10 +93,10 @@ const partnerPath = computed(
 const termsPath = computed(() => `${partnerPath.value}#terms`)
 
 // ============================================================
-// RESERVE (cart is a stub this phase → 'coming soon' inline note)
+// RESERVE
 // ============================================================
 
-const reserveNote = ref<'' | 'not_ready' | 'added'>('')
+const reserveNote = ref<'' | 'not_ready' | 'added' | 'max_items' | 'already_in_cart'>('')
 
 function reserve(intent: 'purchase' | 'rental') {
   const d = item.value
@@ -117,8 +117,8 @@ function reserve(intent: 'purchase' | 'rental') {
   if (result.success) {
     reserveNote.value = 'added'
     cart.openPanel()
-  } else if (result.reason === 'not_ready') {
-    reserveNote.value = 'not_ready'
+  } else if (result.reason === 'not_ready' || result.reason === 'max_items' || result.reason === 'already_in_cart') {
+    reserveNote.value = result.reason
   }
 }
 
@@ -276,6 +276,8 @@ onMounted(() => {
               <button v-if="item.available_for_rental" class="pp-btn pp-btn-outline pp-pdp-btn" @click="reserve('rental')">{{ $t('partner.reserveToRent') }}</button>
               <div v-if="reserveNote === 'not_ready'" class="pp-pdp-inline-note">{{ $t('partner.pdp.comingSoon') }}</div>
               <div v-else-if="reserveNote === 'added'" class="pp-msg-success">{{ $t('partner.pdp.added') }}</div>
+              <div v-else-if="reserveNote === 'max_items'" class="pp-pdp-inline-note">{{ $t('partner.errors.max_items') }}</div>
+              <div v-else-if="reserveNote === 'already_in_cart'" class="pp-pdp-inline-note">{{ $t('partner.errors.already_in_cart') }}</div>
               <div class="pp-pdp-hold-window">{{ $t('partner.holdWindow') }}</div>
             </template>
             <button v-else class="pp-btn pp-btn-primary pp-pdp-btn" disabled>{{ $t(statusConfig.labelKey || 'partner.unavailable') }}</button>

@@ -14,6 +14,13 @@
     "holdWindow": "reserved for you for 7 days",
     "loading": "loading…",
     "unavailable": "this item is currently unavailable",
+    "photos": {
+      "add": "add photos",
+      "delete": "remove photo",
+      "kindLabel": "photo type",
+      "tooLarge": "that photo is over 8MB — please resize it and try again",
+      "badType": "photos must be jpeg, png, or webp"
+    },
     "pdp": {
       "notice": "partner item — not included in your Demat membership",
       "brand": "brand",
