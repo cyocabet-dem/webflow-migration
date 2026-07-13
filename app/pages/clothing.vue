@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { CatalogItem } from '~/composables/useCatalog'
+import type { PartnerMappedItem } from '~/composables/usePartnerCatalog'
+
 useHead({
   title: 'Shop The Collection | Dematerialized',
   meta: [
@@ -101,6 +104,7 @@ const {
   statusAvailableCount,
   applyBtnText,
   chips,
+  hasPartnerItems,
   productPath,
   cardMeta,
   statusClass,
@@ -114,7 +118,36 @@ const {
   loadWishlist,
   isInWishlist,
   toggleWishlist,
-} = useCatalog()
+} = useCatalog({ extraItems: fetchPartnerItems })
+
+// ============================================================
+// PARTNER ITEMS (intermixed via useCatalog's extraItems hook —
+// fetchPartnerItems resolves [] on ANY failure, so with no partner
+// backend the page renders exactly as before)
+// ============================================================
+
+const { t } = useI18n()
+
+function cardHref(item: CatalogItem): string {
+  if (item.is_partner) {
+    const prefix = isNL.value ? '/nl' : ''
+    return `${prefix}/partner-item?id=${encodeURIComponent(String((item as PartnerMappedItem).pp_id))}`
+  }
+  return productPath(item.sku)
+}
+
+// Compact price line under the meta — partner cards only.
+function partnerPriceLine(item: CatalogItem): string {
+  const p = item as PartnerMappedItem
+  const parts: string[] = []
+  if (p.available_for_purchase && p.purchase_price_cents !== null) {
+    parts.push(ppFormatPrice(p.purchase_price_cents))
+  }
+  if (p.available_for_rental && p.rental_price_2wk_cents !== null) {
+    parts.push(`${ppFormatPrice(p.rental_price_2wk_cents)}/2wk`)
+  }
+  return parts.join(' · ')
+}
 
 // ============================================================
 // FILTER PANEL: OPEN / CLOSE + SECTION TOGGLES
@@ -135,6 +168,17 @@ const panelSections: Array<{ type: string; title: string; id?: string; extra: bo
     extra: true,
   })),
 ]
+
+// Partner-only sections — appended (and rendered) ONLY when partner items are present.
+const allPanelSections = computed(() => {
+  if (!hasPartnerItems.value) return panelSections
+  return [
+    ...panelSections,
+    { type: 'source', title: t('partner.catalog.source'), id: 'filter-section-source', extra: false },
+    { type: 'partners', title: t('partner.catalog.partner'), id: 'filter-section-partners', extra: false },
+    { type: 'reserve_for', title: t('partner.catalog.reserveFor'), id: 'filter-section-reserve_for', extra: false },
+  ]
+})
 
 function openFilterPanel() {
   panelOpen.value = true
@@ -302,7 +346,8 @@ onBeforeUnmount(() => {
         <p v-if="loadError" style="grid-column: 1/-1; text-align: center; padding: 40px 0; font-family: Urbanist, sans-serif; color: #a86b9c;">could not load catalog. please refresh the page.</p>
         <p v-else-if="loaded && pageItems.length === 0" style="grid-column: 1/-1; text-align: center; padding: 40px 0; font-family: Urbanist, sans-serif; font-weight: 300; color: #a86b9c;">{{ isNL ? 'geen items gevonden.' : 'no items found.' }}</p>
         <div v-for="(item, i) in pageItems" :key="item.id ?? item.sku ?? i" class="div-clothing-item-wrapper" :data-sku="item.sku" :data-name="item.name" :data-item-id="item.id" :data-status="item.status || 'available'">
-          <div class="div-wish-list-wrapper" data-wishlist-bound="true" @click.prevent.stop="toggleWishlist(item.id)">
+          <PartnerBadge v-if="item.is_partner" />
+          <div v-if="!item.is_partner" class="div-wish-list-wrapper" data-wishlist-bound="true" @click.prevent.stop="toggleWishlist(item.id)">
             <div class="heart-icon-outline-20px w-embed" :style="{ display: isInWishlist(item.id) ? 'none' : 'block' }"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640">
                 <path d="M442.9 128C410.5 128 380 143.6 361 169.9L333 208.6C330 212.8 325.2 215.2 320 215.2C314.8 215.2 310 212.7 307 208.6L279 169.9L279 169.9C260 143.6 229.5 128 197.1 128C141.2 128 96 173.3 96 229.1C96 284.1 130.4 336.2 167.8 381.6C209.9 432.8 261.2 477.6 296.3 504.5C302.5 509.3 310.7 512 320 512C329.3 512 337.4 509.3 343.7 504.5C378.8 477.7 430.1 432.8 472.2 381.6C509.5 336.2 544 284.1 544 229.1C544 173.2 498.7 128 442.9 128zM335 151.1C360 116.5 400.2 96 442.9 96C516.4 96 576 155.6 576 229.1C576 296.5 534.4 356.4 496.9 401.9C452.8 455.5 399.6 502 363.1 529.8C350.7 539.2 335.5 543.9 320 543.9C304.5 543.9 289.2 539.3 276.9 529.8C240.4 502 187.2 455.5 143.1 402C105.6 356.4 64 296.5 64 229.1C64 155.6 123.6 96 197.1 96C239.8 96 280 116.5 305 151.1L320 171.8L335 151.1z"></path>
               </svg></div>
@@ -311,10 +356,11 @@ onBeforeUnmount(() => {
               </svg></div>
             <div class="heart-icon-wrapper"></div>
           </div>
-          <a id="w-node-_2469b4f2-f406-0ebe-03c3-cec18917dfdf-e74571a7" :href="productPath(item.sku)" class="div-clothing-image-wrapper w-inline-block"><img class="clothing-image back" :src="item.back_image || item.front_image || ''" :alt="`${item.name} — back`" data-field="backImage" loading="lazy" decoding="async"><img class="clothing-image front" :src="item.front_image || ''" :alt="`${item.name} — front`" data-field="frontImage" loading="lazy" decoding="async"></a>
+          <a id="w-node-_2469b4f2-f406-0ebe-03c3-cec18917dfdf-e74571a7" :href="cardHref(item)" class="div-clothing-image-wrapper w-inline-block"><img class="clothing-image back" :src="item.back_image || item.front_image || ''" :alt="`${item.name} — back`" data-field="backImage" loading="lazy" decoding="async"><img class="clothing-image front" :src="item.front_image || ''" :alt="`${item.name} — front`" data-field="frontImage" loading="lazy" decoding="async"></a>
           <div class="div-clothing-item-text">
             <div data-field="name" class="clohting-item-heading">{{ item.name || item.sku }}</div>
             <div data-field="meta" class="clothing-item-text" :class="statusClass(item)">{{ cardMeta(item) }}</div>
+            <div v-if="item.is_partner" class="clothing-item-text pp-card-price">{{ partnerPriceLine(item) }}</div>
           </div>
         </div>
       </div>
@@ -345,7 +391,7 @@ onBeforeUnmount(() => {
           <span class="filter-status-label">show available only</span>
           <span id="filter-status-available-count" class="filter-status-count">{{ loaded ? statusAvailableCount : '' }}</span>
         </label>
-        <div v-for="sec in panelSections" v-show="!sec.extra || extraOptions[sec.type].length > 0" :id="sec.id" :key="sec.type" class="filter-section" :data-section="sec.type">
+        <div v-for="sec in allPanelSections" v-show="!sec.extra || extraOptions[sec.type].length > 0" :id="sec.id" :key="sec.type" class="filter-section" :data-section="sec.type">
           <button class="filter-section-header" :class="{ 'is-collapsed': !openSections[sec.type] }" :data-toggle="sec.type" @click.prevent="toggleSection(sec.type)">
             <span class="filter-section-title">{{ sec.title }}</span>
             <svg class="filter-section-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
@@ -401,6 +447,11 @@ onBeforeUnmount(() => {
 .item-card:hover .item-card__img.is-back  { opacity: 1; }
 /* Card hover image swap (was Webflow IX2: hide .clothing-image.front on hover) */
 .div-clothing-image-wrapper:hover .clothing-image.front { display: none; }
+/* Partner card price line (rendered only on partner items) */
+.pp-card-price {
+  font-size: 14px;
+  color: #46535e;
+}
 /* ============================================
    FILTER PANEL - SLIDE-OUT FROM RIGHT
    ============================================ */

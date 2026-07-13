@@ -14,6 +14,11 @@
     "holdWindow": "7 dagen voor je gereserveerd",
     "loading": "laden…",
     "unavailable": "dit item is momenteel niet beschikbaar",
+    "catalog": {
+      "source": "bron",
+      "partner": "partner",
+      "reserveFor": "reserveren voor"
+    },
     "photos": {
       "add": "foto's toevoegen",
       "delete": "foto verwijderen",

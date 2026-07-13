@@ -342,6 +342,33 @@ Kept current as work lands. ✅ done · 🔄 in progress · ⏳ pending.
   `https://localhost` (flagged for Edward, env-var change, no backend code touched)**, signing +
   store listings, universal-link IDs (Team ID / signing SHA-256).
 
+## Partner platform MVP 🔄 (2026-07-12/13, Courtney's request — sanctioned new scope)
+- Branch `claude/partner-platform-mvp-lmc29w` (based on `capacitor-mobile-apps`). The full spec,
+  decision log, and handover manual live in the **demat-platform umbrella repo** under
+  `partner-platform/` (CONTRACT.md = frozen API contract, MANUAL.md = the handover document);
+  the matching backend is a self-contained package there for Edward to mount (never committed to
+  demat-backend directly, per house rule).
+- ✅ New surfaces (all real-i18n `$t()` new-scope code, `partner.*`/`partnerDashboard.*`/`partnerAdmin.*`
+  namespaces, `.pp-` styles in `9-partner.css` + per-page blocks): partner PDP `/partner-item?id=`,
+  `/partners` directory + `/partners/[slug]` storefronts, partner reservation cart (third store,
+  localStorage `demat_partner_cart`, floating trigger — the two ported carts untouched), 4-step
+  checkout (Stripe **setup-mode** hosted redirect for card-on-file with sessionStorage
+  snapshot/resume via `?pp_setup=`, per-partner terms gates with version snapshots, per-item
+  results), `/partner-activity` account page, partner dashboard `/partner/*` (8 pages), admin
+  `/admin/*` (approval queue with photo upload, partner CRUD + logins + Stripe Connect onboarding).
+- ✅ Existing files touched (all minimal/additive, hydration-rule compliant, v-show gated on the
+  `usePartnerPlatform` availability probe so the site renders **byte-identically until the partner
+  backend is deployed**): `nuxt.config.ts` (css append + i18n `files:` per-domain), `layouts/default.vue`
+  (+2 components), `SiteNavbar.vue` (+3 account-dropdown links), 6 account pages (+1 sidenav anchor
+  each), `sitemap.xml.ts` (+/partners + best-effort slugs), `useCatalog.ts` (optional `extraItems`
+  hook) + `clothing.vue` (partner badge/link/meta/filters) for the intermixed catalog.
+- ✅ New keys under `demat_partner_cart` (localStorage), `pp_pending_checkout` (sessionStorage),
+  `dm_partner_catalog` (sessionStorage, 5-min TTL) — registered here per the storage-key rule.
+- ⏳ NL copy across the three partner namespaces was drafted in-session — **flagged for Courtney's
+  native review** (list in umbrella MANUAL.md).
+- ⏳ Human/deploy steps: backend module must deploy first (probe answers → UI appears); Stripe
+  Connect + webhook dashboard setup per MANUAL.md §4; merge order backend → frontend as always.
+
 ## Phase 6 — blog to database ⏳
 - **Gated on Edward**: confirm base branch (`claude/rental-returns-myparcel-a2v09b`) + PR target. Models sketched in Appendix J; seed data ready in `app/data/blog.json`.
 

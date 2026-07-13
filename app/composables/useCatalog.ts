@@ -72,7 +72,23 @@ const ITEMS_PER_PAGE = 20
 const STANDARD_PROFILE_SIZES = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL']
 const SIZE_ORDER_REF = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '2XL', '3XL', 'One Size']
 
-export function useCatalog() {
+// Partner facets (only rendered when extra items are present — see hasPartnerItems)
+const SOURCE_OPTIONS: FilterOption[] = [
+  { id: 'demat closet', name: 'demat closet' },
+  { id: 'partner items', name: 'partner items' },
+]
+const RESERVE_FOR_OPTIONS: FilterOption[] = [
+  { id: 'purchase', name: 'purchase' },
+  { id: 'rental', name: 'rental' },
+]
+
+export interface CatalogOptions {
+  // Extra items (e.g. partner items mapped to CatalogItem) appended to the catalog
+  // after the main items load. Resolves once per page init; failure → no extra items.
+  extraItems?: () => Promise<CatalogItem[]>
+}
+
+export function useCatalog(options?: CatalogOptions) {
   const config = useRuntimeConfig()
   const route = useRoute()
   const router = useRouter()
@@ -90,7 +106,21 @@ export function useCatalog() {
   // ============================================================
 
   const catalogData = ref<{ items: CatalogItem[]; filters?: unknown; query?: string } | null>(null)
-  const items = computed<CatalogItem[]>(() => catalogData.value?.items || [])
+  // Extra (partner) items — [] unless options.extraItems resolves with items, so the
+  // no-options path always returns the untouched catalog array below.
+  const extraItemsList = ref<CatalogItem[]>([])
+  const items = computed<CatalogItem[]>(() => {
+    const base = catalogData.value?.items || []
+    const extras = extraItemsList.value
+    if (!extras.length) return base
+    // Search comes back server-filtered for closet items; extra items are matched
+    // client-side on name/brand so they flow through the same downstream pipeline.
+    const q = searchQuery.value.trim().toLowerCase()
+    const matching = q
+      ? extras.filter((item) => `${item.name || ''} ${String(item.brand || '')}`.toLowerCase().includes(q))
+      : extras
+    return base.concat(matching)
+  })
   const loaded = ref(false)
   const loadError = ref(false)
   const currentPage = ref(1)
@@ -118,6 +148,10 @@ export function useCatalog() {
     fit: [],
     pattern: [],
     neckline: [],
+    // Partner facets — always empty (and therefore inert) unless partner items exist
+    source: [],
+    partners: [],
+    reserve_for: [],
   })
 
   function selKey(type: string): string {
@@ -154,7 +188,10 @@ export function useCatalog() {
     const size = getItemSize(item)
     const displayStatus = formatStatus(item.status).toLowerCase()
     const sizeUpper = size ? size.toUpperCase() : ''
-    return sizeUpper ? `${sizeUpper} | ${displayStatus}` : displayStatus
+    const base = sizeUpper ? `${sizeUpper} | ${displayStatus}` : displayStatus
+    // Partner items append the shop name; closet items are untouched.
+    if (item.is_partner && item.partner_name) return `${base} | ${item.partner_name}`
+    return base
   }
 
   function statusClass(item: CatalogItem): string {
@@ -389,10 +426,46 @@ export function useCatalog() {
     count += selected.colors.length
     count += selected.size.length
     count += selected.status.length
+    count += selected.source.length
+    count += selected.partners.length
+    count += selected.reserve_for.length
     EXTRA_FILTERS.forEach((def) => {
       count += (selected[def.type] || []).length
     })
     return count
+  }
+
+  // Partner facet predicates. Closet items are 'demat closet', have no partner_name
+  // and match neither reserve intent, so all three are inert until a partner-only
+  // value is actively selected.
+  function itemMatchesSource(item: CatalogItem, sel: string[]): boolean {
+    if (!sel.length) return true
+    return sel.includes(item.is_partner ? 'partner items' : 'demat closet')
+  }
+
+  function itemMatchesPartner(item: CatalogItem, sel: string[]): boolean {
+    if (!sel.length) return true
+    return sel.includes(String(item.partner_name || ''))
+  }
+
+  function itemMatchesReserveFor(item: CatalogItem, sel: string[]): boolean {
+    if (!sel.length) return true
+    return sel.some(
+      (r) =>
+        (r === 'purchase' && item.available_for_purchase === true) ||
+        (r === 'rental' && item.available_for_rental === true),
+    )
+  }
+
+  // Partner categories are plain strings (no ids), so they match closet category
+  // selections case-insensitively by name.
+  function itemMatchesCategories(item: CatalogItem, sel: string[]): boolean {
+    if (!sel.length) return true
+    if (item.is_partner) {
+      const cat = String(item.category_name || '').toLowerCase()
+      return !!cat && sel.some((c) => c.toLowerCase() === cat)
+    }
+    return sel.includes(item.category_name || '')
   }
 
   function filterItems(list: CatalogItem[], filters: Record<string, string[]>): CatalogItem[] {
@@ -403,7 +476,7 @@ export function useCatalog() {
         if (!filters.status!.some((s) => itemStatus === s.toLowerCase())) return false
       }
 
-      if (filters.categories!.length > 0 && !filters.categories!.includes(item.category_name || '')) return false
+      if (!itemMatchesCategories(item, filters.categories!)) return false
       if (filters.subcategories!.length > 0 && !filters.subcategories!.includes(item.subcategory_name || '')) return false
       if (filters.colors!.length > 0 && !(item.color_names || []).some((c) => filters.colors!.includes(c))) return false
 
@@ -419,6 +492,11 @@ export function useCatalog() {
         }
       }
 
+      // Partner facets
+      if (!itemMatchesSource(item, filters.source || [])) return false
+      if (!itemMatchesPartner(item, filters.partners || [])) return false
+      if (!itemMatchesReserveFor(item, filters.reserve_for || [])) return false
+
       return true
     })
   }
@@ -429,6 +507,9 @@ export function useCatalog() {
       subcategories: {},
       colors: {},
       size: {},
+      source: {},
+      partners: {},
+      reserve_for: {},
     }
     EXTRA_FILTERS.forEach((def) => {
       counts[def.type] = {}
@@ -443,7 +524,7 @@ export function useCatalog() {
           const itemStatus = (item.status || 'available').toLowerCase().trim()
           if (!currentFilters.status.some((s) => itemStatus === s.toLowerCase())) return false
         }
-        if (excludeType !== 'category' && currentFilters.categories.length > 0 && !currentFilters.categories.includes(item.category_name || '')) return false
+        if (excludeType !== 'category' && !itemMatchesCategories(item, currentFilters.categories)) return false
         if (excludeType !== 'subcategory' && currentFilters.subcategories.length > 0 && !currentFilters.subcategories.includes(item.subcategory_name || '')) return false
         if (excludeType !== 'color' && currentFilters.colors.length > 0 && !(item.color_names || []).some((c) => currentFilters.colors.includes(c))) return false
         if (excludeType !== 'size' && currentFilters.size.length > 0 && !itemMatchesSize(item, currentFilters.size)) return false
@@ -456,6 +537,12 @@ export function useCatalog() {
             if (!val || !sel.includes(val)) return false
           }
         }
+
+        // Partner facets
+        if (excludeType !== 'source' && !itemMatchesSource(item, currentFilters.source || [])) return false
+        if (excludeType !== 'partners' && !itemMatchesPartner(item, currentFilters.partners || [])) return false
+        if (excludeType !== 'reserve_for' && !itemMatchesReserveFor(item, currentFilters.reserve_for || [])) return false
+
         return true
       })
     }
@@ -501,6 +588,20 @@ export function useCatalog() {
         const val = getExtraValue(item, def)
         if (val) counts[def.type]![val] = (counts[def.type]![val] || 0) + 1
       })
+    })
+
+    // Partner facet counts (exclude-this-facet, like every other section)
+    itemsExcluding('source').forEach((item) => {
+      const key = item.is_partner ? 'partner items' : 'demat closet'
+      counts.source![key] = (counts.source![key] || 0) + 1
+    })
+    itemsExcluding('partners').forEach((item) => {
+      const name = String(item.partner_name || '')
+      if (name) counts.partners![name] = (counts.partners![name] || 0) + 1
+    })
+    itemsExcluding('reserve_for').forEach((item) => {
+      if (item.available_for_purchase === true) counts.reserve_for!['purchase'] = (counts.reserve_for!['purchase'] || 0) + 1
+      if (item.available_for_rental === true) counts.reserve_for!['rental'] = (counts.reserve_for!['rental'] || 0) + 1
     })
 
     return counts
@@ -656,6 +757,20 @@ export function useCatalog() {
     return { empty: false, rows }
   }
 
+  // Partner presence + per-shop options (drive the partner-only filter sections)
+  const hasPartnerItems = computed(() => items.value.some((item) => item.is_partner === true))
+
+  const partnerNameOptions = computed<FilterOption[]>(() => {
+    const map = new Map<string, FilterOption>()
+    items.value.forEach((item) => {
+      if (item.is_partner && item.partner_name) {
+        const name = String(item.partner_name)
+        map.set(name, { id: name, name })
+      }
+    })
+    return Array.from(map.values())
+  })
+
   const sections = computed<Record<string, { empty: boolean; rows: FilterRow[] }>>(() => {
     const result: Record<string, { empty: boolean; rows: FilterRow[] }> = {}
     result.category = makeSection(availableFilters.value.categories, 'category')
@@ -665,6 +780,9 @@ export function useCatalog() {
     EXTRA_FILTERS.forEach((def) => {
       result[def.type] = makeSection(extraOptions.value[def.type], def.type)
     })
+    result.source = makeSection(SOURCE_OPTIONS, 'source')
+    result.partners = makeSection(partnerNameOptions.value, 'partners')
+    result.reserve_for = makeSection(RESERVE_FOR_OPTIONS, 'reserve_for')
     return result
   })
 
@@ -698,6 +816,10 @@ export function useCatalog() {
       addChips(selected[def.type] || [], def.type, def.label)
     })
 
+    addChips(selected.source, 'source', 'source')
+    addChips(selected.partners, 'partners', 'partner')
+    addChips(selected.reserve_for, 'reserve_for', 'reserve for')
+
     return list
   })
 
@@ -727,6 +849,9 @@ export function useCatalog() {
     if (selected.colors.length) query.colors = [...selected.colors]
     if (selected.size.length) query.size = [...selected.size]
     if (selected.status.length) query.status = [...selected.status]
+    if (selected.source.length) query.source = [...selected.source]
+    if (selected.partners.length) query.partners = [...selected.partners]
+    if (selected.reserve_for.length) query.reserve_for = [...selected.reserve_for]
 
     EXTRA_FILTERS.forEach((def) => {
       if (selected[def.type]!.length) query[def.type] = [...selected[def.type]!]
@@ -747,6 +872,9 @@ export function useCatalog() {
     selected.colors = getAllParam(url.colors)
     selected.size = getAllParam(url.size)
     selected.status = getAllParam(url.status)
+    selected.source = getAllParam(url.source)
+    selected.partners = getAllParam(url.partners)
+    selected.reserve_for = getAllParam(url.reserve_for)
     EXTRA_FILTERS.forEach((def) => {
       selected[def.type] = getAllParam(url[def.type])
     })
@@ -948,6 +1076,17 @@ export function useCatalog() {
 
       await Promise.all(initPromises)
 
+      // Extra (partner) items — appended after the main catalog loads, whether it
+      // came from the sessionStorage cache or the network. Any failure → none.
+      if (options?.extraItems) {
+        try {
+          const extra = await options.extraItems()
+          extraItemsList.value = Array.isArray(extra) ? extra : []
+        } catch {
+          extraItemsList.value = []
+        }
+      }
+
       // Apply URL filters + status
       applySelectionsFromQuery(url)
 
@@ -978,6 +1117,7 @@ export function useCatalog() {
     statusAvailableCount,
     applyBtnText,
     chips,
+    hasPartnerItems,
     // helpers
     productPath,
     cardMeta,
