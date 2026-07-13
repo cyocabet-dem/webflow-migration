@@ -296,6 +296,8 @@ const { userData: authUserData } = useAuth()
 const SHIPPING_MEMBERSHIP_NAMES = ['5 items, 1 shipment per month', '5 items per shipment, 2 shipments per month']
 const hideReservationsLink = computed(() => SHIPPING_MEMBERSHIP_NAMES.includes(authUserData.value?.membership?.name ?? ''))
 
+const { partnerUiEnabled } = usePartnerPlatform()
+
 onMounted(() => {
   document.addEventListener('keydown', onKeydown)
   initPurchasesPage()
@@ -364,6 +366,7 @@ onBeforeUnmount(() => {
               </span>
               <span class="lang-en">purchases</span><span class="lang-nl">aankopen</span>
             </a>
+            <a v-show="partnerUiEnabled" href="/partner-activity" class="account-sidenav-link" :class="{ active: isNavActive('/partner-activity') }" data-nav="partner-activity"><span class="account-sidenav-icon"><svg viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"></path><circle cx="7.5" cy="7.5" r="1"></circle></svg></span><span class="lang-en">partner items</span><span class="lang-nl">partneritems</span></a>
             <div class="account-sidenav-sep"></div>
             <a href="/my-membership" class="account-sidenav-link" :class="{ active: isNavActive('/my-membership') }" data-nav="membership">
               <span class="account-sidenav-icon">
