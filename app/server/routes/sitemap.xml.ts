@@ -23,6 +23,7 @@ const PAGES = [
   '/also-this',
   '/missing-pieces',
   '/donation-store-credit-policy',
+  '/partners',
 ]
 
 function alternates(path: string): string {
@@ -40,8 +41,31 @@ function pageEntries(path: string): string {
   )
 }
 
-export default defineEventHandler((event) => {
+export default defineEventHandler(async (event) => {
   const urls: string[] = PAGES.map(pageEntries)
+
+  // Best-effort partner storefront URLs (/partners/{slug}); the sitemap must never
+  // break, so any failure (partner backend not deployed, timeout) silently emits
+  // only the static pages above.
+  try {
+    const apiBase = process.env.NUXT_PUBLIC_API_BASE || 'https://test-api.dematerialized.nl'
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), 3000)
+    const res = await fetch(`${apiBase}/partner-platform/public/partners`, {
+      signal: controller.signal,
+    })
+    clearTimeout(timer)
+    if (res.ok) {
+      const partners = await res.json()
+      if (Array.isArray(partners)) {
+        for (const partner of partners) {
+          if (partner?.slug) urls.push(pageEntries(`/partners/${encodeURIComponent(partner.slug)}`))
+        }
+      }
+    }
+  } catch {
+    /* partner platform unreachable — static pages only */
+  }
 
   for (const post of blogData.posts) {
     if (post.en?.title) {
