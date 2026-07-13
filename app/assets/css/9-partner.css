@@ -97,11 +97,14 @@
 .pp-btn-danger:hover:not(:disabled) { background: var(--pp-danger); color: #fff; }
 .pp-btn-sm { padding: 6px 16px; font-size: 13px; }
 
-/* --- Modal base (backdrop + centered container, house pattern) --- */
+/* --- Modal base (backdrop + centered container, house pattern) ---
+   z-index sits above the floating cart trigger (9985), mobile bottom nav (9990)
+   and cart panel (9993) so dashboard/admin modals clear them; the checkout
+   modal raises its own backdrop to 9996 (partner/CheckoutModal.vue). */
 .pp-modal-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 4000;
+  z-index: 9995;
   display: flex;
   align-items: center;
   justify-content: center;

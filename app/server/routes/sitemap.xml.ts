@@ -41,30 +41,51 @@ function pageEntries(path: string): string {
   )
 }
 
+// Module-level cache of partner slugs (5-minute TTL) so crawler bursts don't hit the
+// partner API on every request. A failed refresh caches an empty list for the TTL —
+// the sitemap keeps serving the static pages and stops hammering an unreachable API.
+const SLUG_CACHE_TTL_MS = 5 * 60 * 1000
+let slugCache: { slugs: string[]; timestamp: number } | null = null
+
+async function getPartnerSlugs(): Promise<string[]> {
+  if (slugCache && Date.now() - slugCache.timestamp < SLUG_CACHE_TTL_MS) {
+    return slugCache.slugs
+  }
+  let slugs: string[] = []
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 3000)
+  try {
+    const apiBase = process.env.NUXT_PUBLIC_API_BASE || 'https://test-api.dematerialized.nl'
+    const res = await fetch(`${apiBase}/partner-platform/public/partners`, {
+      signal: controller.signal,
+    })
+    if (res.ok) {
+      // The abort timer stays armed through the BODY read too — a stalled body
+      // stream must not hang the sitemap any more than a stalled connect.
+      const partners = await res.json()
+      if (Array.isArray(partners)) {
+        slugs = partners
+          .map((p) => (typeof p?.slug === 'string' ? p.slug : ''))
+          .filter(Boolean)
+      }
+    }
+  } catch {
+    /* partner platform unreachable — static pages only */
+  } finally {
+    clearTimeout(timer)
+  }
+  slugCache = { slugs, timestamp: Date.now() }
+  return slugs
+}
+
 export default defineEventHandler(async (event) => {
   const urls: string[] = PAGES.map(pageEntries)
 
   // Best-effort partner storefront URLs (/partners/{slug}); the sitemap must never
   // break, so any failure (partner backend not deployed, timeout) silently emits
   // only the static pages above.
-  try {
-    const apiBase = process.env.NUXT_PUBLIC_API_BASE || 'https://test-api.dematerialized.nl'
-    const controller = new AbortController()
-    const timer = setTimeout(() => controller.abort(), 3000)
-    const res = await fetch(`${apiBase}/partner-platform/public/partners`, {
-      signal: controller.signal,
-    })
-    clearTimeout(timer)
-    if (res.ok) {
-      const partners = await res.json()
-      if (Array.isArray(partners)) {
-        for (const partner of partners) {
-          if (partner?.slug) urls.push(pageEntries(`/partners/${encodeURIComponent(partner.slug)}`))
-        }
-      }
-    }
-  } catch {
-    /* partner platform unreachable — static pages only */
+  for (const slug of await getPartnerSlugs()) {
+    urls.push(pageEntries(`/partners/${encodeURIComponent(slug)}`))
   }
 
   for (const post of blogData.posts) {

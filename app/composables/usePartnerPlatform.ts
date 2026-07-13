@@ -111,6 +111,8 @@ export function usePartnerPlatform() {
   /**
    * Fetch wrapper for /partner-platform endpoints.
    * opts.auth: 'required' (throws PartnerApiError 401 when no token) | 'optional' | 'none'
+   * opts.timeoutMs: abort the request after this many ms (AbortController); undefined
+   * keeps the platform default (no client-side timeout).
    */
   async function ppFetch<T = any>(
     path: string,
@@ -120,6 +122,7 @@ export function usePartnerPlatform() {
       formData?: FormData
       auth?: 'required' | 'optional' | 'none'
       query?: Record<string, string | string[] | boolean | undefined>
+      timeoutMs?: number
     } = {},
   ): Promise<T> {
     const auth = opts.auth ?? 'required'
@@ -147,18 +150,29 @@ export function usePartnerPlatform() {
       headers['Content-Type'] = 'application/json'
       body = JSON.stringify(opts.body)
     }
-    const res = await fetch(url, { method: opts.method || 'GET', headers, body })
-    if (!res.ok) {
-      let detail: unknown = null
-      try {
-        detail = (await res.json())?.detail ?? null
-      } catch {
-        /* non-JSON error body */
-      }
-      throw new PartnerApiError(res.status, detail)
+    let signal: AbortSignal | undefined
+    let timer: ReturnType<typeof setTimeout> | undefined
+    if (opts.timeoutMs !== undefined) {
+      const controller = new AbortController()
+      signal = controller.signal
+      timer = setTimeout(() => controller.abort(), opts.timeoutMs)
     }
-    if (res.status === 204) return undefined as T
-    return resolveMediaUrls((await res.json()) as T, config.public.apiBase as string)
+    try {
+      const res = await fetch(url, { method: opts.method || 'GET', headers, body, signal })
+      if (!res.ok) {
+        let detail: unknown = null
+        try {
+          detail = (await res.json())?.detail ?? null
+        } catch {
+          /* non-JSON error body */
+        }
+        throw new PartnerApiError(res.status, detail)
+      }
+      if (res.status === 204) return undefined as T
+      return resolveMediaUrls((await res.json()) as T, config.public.apiBase as string)
+    } finally {
+      if (timer !== undefined) clearTimeout(timer)
+    }
   }
 
   /** Resolve roles/card state. Cached; force=true refetches (e.g. after card setup). */

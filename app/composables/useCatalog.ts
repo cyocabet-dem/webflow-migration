@@ -437,19 +437,26 @@ export function useCatalog(options?: CatalogOptions) {
 
   // Partner facet predicates. Closet items are 'demat closet', have no partner_name
   // and match neither reserve intent, so all three are inert until a partner-only
-  // value is actively selected.
+  // value is actively selected. They are also fully inert while NO partner items are
+  // loaded (extraItemsList empty): the panel sections that could clear these
+  // selections are hidden then, so a stale ?source=/?partners=/?reserve_for= URL
+  // must not blank the closet catalog.
+  function partnerFacetsInert(): boolean {
+    return extraItemsList.value.length === 0
+  }
+
   function itemMatchesSource(item: CatalogItem, sel: string[]): boolean {
-    if (!sel.length) return true
+    if (!sel.length || partnerFacetsInert()) return true
     return sel.includes(item.is_partner ? 'partner items' : 'demat closet')
   }
 
   function itemMatchesPartner(item: CatalogItem, sel: string[]): boolean {
-    if (!sel.length) return true
+    if (!sel.length || partnerFacetsInert()) return true
     return sel.includes(String(item.partner_name || ''))
   }
 
   function itemMatchesReserveFor(item: CatalogItem, sel: string[]): boolean {
-    if (!sel.length) return true
+    if (!sel.length || partnerFacetsInert()) return true
     return sel.some(
       (r) =>
         (r === 'purchase' && item.available_for_purchase === true) ||
@@ -1074,18 +1081,23 @@ export function useCatalog(options?: CatalogOptions) {
         initPromises.push(initCatalog())
       }
 
-      await Promise.all(initPromises)
-
-      // Extra (partner) items — appended after the main catalog loads, whether it
-      // came from the sessionStorage cache or the network. Any failure → none.
+      // Extra (partner) items — fetched in the same parallel batch as the main
+      // catalog (the partner fetch is 5s-capped upstream, so `loaded` never waits
+      // longer than the slower of the closet load and that cap). Any failure → none.
       if (options?.extraItems) {
-        try {
-          const extra = await options.extraItems()
-          extraItemsList.value = Array.isArray(extra) ? extra : []
-        } catch {
-          extraItemsList.value = []
-        }
+        initPromises.push(
+          (async () => {
+            try {
+              const extra = await options.extraItems!()
+              extraItemsList.value = Array.isArray(extra) ? extra : []
+            } catch {
+              extraItemsList.value = []
+            }
+          })(),
+        )
       }
+
+      await Promise.all(initPromises)
 
       // Apply URL filters + status
       applySelectionsFromQuery(url)

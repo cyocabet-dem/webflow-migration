@@ -213,6 +213,7 @@
       "rtoTitle": "rent-to-own",
       "rtoExplain": "the renter buys this item — rent they've already paid comes off the price.",
       "rtoPurchasePrice": "purchase price",
+      "rtoPriceNote": "the charged price follows the customer's original reservation: members pay the member price, based on their membership when they reserved.",
       "rtoRentPaid": "rent paid so far (this rental)",
       "rtoNote": "the exact credit is worked out from everything they've paid in rent on this item — you'll see the final numbers right after.",
       "rtoConfirm": "sell to renter",

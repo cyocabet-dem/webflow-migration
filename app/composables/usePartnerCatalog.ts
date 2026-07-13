@@ -202,6 +202,10 @@ function cacheItems(data: { items: PartnerCatalogItem[] }) {
 // Public fetchers (all auth:'none'; client-only surfaces call these onMounted)
 // ============================================================
 
+// The catalog intermix must never delay the closet catalog: the /public/items fetch
+// aborts after 5s and resolves [] like any other failure.
+const ITEMS_TIMEOUT_MS = 5000
+
 /** GET /public/items → CatalogItem-compatible array. [] on ANY failure (never throws). */
 export async function fetchPartnerItems(): Promise<PartnerMappedItem[]> {
   if (!import.meta.client) return []
@@ -209,7 +213,10 @@ export async function fetchPartnerItems(): Promise<PartnerMappedItem[]> {
     const cached = getCachedItems()
     if (cached) return cached.map(mapToCatalogItem)
     const { ppFetch } = usePartnerPlatform()
-    const data = await ppFetch<{ items: PartnerCatalogItem[] }>('/public/items', { auth: 'none' })
+    const data = await ppFetch<{ items: PartnerCatalogItem[] }>('/public/items', {
+      auth: 'none',
+      timeoutMs: ITEMS_TIMEOUT_MS,
+    })
     const items = Array.isArray(data?.items) ? data.items : []
     cacheItems({ items })
     return items.map(mapToCatalogItem)

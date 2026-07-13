@@ -259,6 +259,19 @@ export function usePartnerCart() {
   }
 
   /**
+   * Return URL for the Stripe setup redirect: the CURRENT page URL with its full
+   * query string preserved (the partner PDP needs its ?id= to survive the round
+   * trip — its SSR guard redirects away without it), plus pp_setup=<outcome>.
+   * Any pre-existing pp_setup is stripped first so repeat setups never stack.
+   */
+  function setupReturnUrl(outcome: 'success' | 'cancelled'): string {
+    const url = new URL(window.location.href)
+    url.searchParams.delete('pp_setup')
+    url.searchParams.set('pp_setup', outcome)
+    return url.toString()
+  }
+
+  /**
    * POST /user/card-setup → hosted Stripe redirect. The cart is snapshotted to
    * sessionStorage BEFORE navigating away so resumeFromSetup can restore it even
    * if localStorage was cleared mid-flight.
@@ -269,15 +282,14 @@ export function usePartnerCart() {
     s.error = null
     s.errorMessage = null
     s.setupCancelled = false
-    const base = window.location.origin + window.location.pathname
     try {
       const data = await ppFetch<{ checkout_url: string; session_id: string }>(
         '/user/card-setup',
         {
           method: 'POST',
           body: {
-            success_url: `${base}?pp_setup=success`,
-            cancel_url: `${base}?pp_setup=cancelled`,
+            success_url: setupReturnUrl('success'),
+            cancel_url: setupReturnUrl('cancelled'),
           },
         },
       )
@@ -302,7 +314,9 @@ export function usePartnerCart() {
    * (back from the Stripe setup redirect): restore the sessionStorage snapshot into the
    * cart (conservative merge — keep whichever list is non-empty), strip the query param,
    * reopen checkout on the card step and re-check the card (the backend lazy-syncs the
-   * setup session). On 'cancelled' the card step shows a gentle inline note.
+   * setup session). On 'cancelled' the card step shows a gentle inline note. When the
+   * restored cart ended up empty (snapshot + localStorage both gone), the cart panel's
+   * empty state opens instead of a checkout modal that could never submit.
    */
   function resumeFromSetup(outcome: 'success' | 'cancelled') {
     if (!import.meta.client) return
@@ -324,8 +338,13 @@ export function usePartnerCart() {
       /* ignore */
     }
     stripSetupParam()
-    panelOpen.value = false
     resetCheckout()
+    if (items.value.length === 0) {
+      checkoutOpen.value = false
+      panelOpen.value = true
+      return
+    }
+    panelOpen.value = false
     checkoutState.value.setupCancelled = outcome === 'cancelled'
     checkoutOpen.value = true
     loadCard()
@@ -451,8 +470,19 @@ export function usePartnerCart() {
       for (const r of results) {
         if (r.ok) removeItem(r.item_hash_id) // failures stay in the cart for a retry
       }
-      s.results = results
-      s.step = 'results'
+      if (results.some((r) => !r.ok && r.error?.code === 'stale_terms')) {
+        // The backend reports stale_terms PER ITEM inside a 200 results payload (never
+        // as a whole-request 409): some partner's terms changed under us. Successes are
+        // already applied/removed above; the stale items stayed in the cart, so refetch
+        // the now-current terms and jump back to the terms step with the stale notice,
+        // forcing re-acceptance before a retry.
+        s.step = 'terms'
+        await loadTerms() // clears s.error — set the notice after it settles
+        s.error = 'stale_terms'
+      } else {
+        s.results = results
+        s.step = 'results'
+      }
     } catch (e) {
       if (e instanceof PartnerApiError && e.status === 409 && e.code === 'card_required') {
         // Whole-request reject: no card on file (it may have been removed since the
@@ -460,13 +490,6 @@ export function usePartnerCart() {
         s.step = 'card'
         s.error = 'card_required'
         loadCard()
-      } else if (e instanceof PartnerApiError && e.status === 409 && e.code === 'stale_terms') {
-        // Terms changed under us. error.detail.current lists the now-current versions;
-        // the public terms endpoint returns exactly those, so re-sync by refetching and
-        // force re-acceptance with a notice.
-        s.step = 'terms'
-        s.error = 'stale_terms'
-        await loadTerms()
       } else if (e instanceof PartnerApiError) {
         s.error = e.code || 'generic'
         s.errorMessage = e.message

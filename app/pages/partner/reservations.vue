@@ -47,12 +47,14 @@ const { locale, t } = useI18n()
 const isNL = computed(() => locale.value.startsWith('nl'))
 const { ppFetch } = usePartnerPlatform()
 
-// Standalone media URLs are API-origin-relative — resolve against apiBase; absolute
-// URLs pass through untouched.
+// Guard against double-prefixing: ppFetch's resolveMediaUrls already resolves
+// backend-relative media paths against apiBase, so only a raw, unresolved
+// '/partner-platform/…' path still needs the prefix here; already-resolved paths
+// and absolute S3 URLs pass through untouched.
 const apiPublicBase = useRuntimeConfig().public.apiBase
 function mediaUrl(u: string | null | undefined): string {
   if (!u) return ''
-  return u.startsWith('/') ? apiPublicBase + u : u
+  return u.startsWith('/partner-platform/') ? apiPublicBase + u : u
 }
 
 const state = ref<'loading' | 'ready' | 'error'>('loading')

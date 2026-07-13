@@ -8,8 +8,9 @@ const isNL = computed(() => locale.value.startsWith('nl'))
 const langPrefix = computed(() => (isNL.value ? '/nl' : ''))
 
 const cart = usePartnerCart()
-const { checkoutOpen, checkoutState, grouped, allTermsAccepted, panelOpen } = cart
+const { checkoutOpen, checkoutState, grouped, allTermsAccepted } = cart
 const { hasActiveMembership } = useAuth()
+const bodyLock = usePpBodyLock()
 
 const state = checkoutState
 
@@ -100,11 +101,12 @@ function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape' && checkoutOpen.value) onClose()
 }
 
-// Body overflow lock; only unlock when the cart panel isn't holding it too.
+// Body overflow lock — shared counter with the cart panel, so closing one overlay
+// never unfreezes the page while the other is still open.
 watch(checkoutOpen, (open) => {
   if (!import.meta.client) return
-  if (open) document.body.style.overflow = 'hidden'
-  else if (!panelOpen.value) document.body.style.overflow = ''
+  if (open) bodyLock.lock()
+  else bodyLock.unlock()
 })
 
 onMounted(() => {
@@ -113,7 +115,8 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('keydown', onKeydown)
-  if (checkoutOpen.value && !panelOpen.value) document.body.style.overflow = ''
+  // The watcher dies with the component — release a lock still held for an open modal.
+  if (checkoutOpen.value) bodyLock.unlock()
 })
 </script>
 

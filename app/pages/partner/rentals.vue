@@ -42,12 +42,14 @@ const { locale, t } = useI18n()
 const isNL = computed(() => locale.value.startsWith('nl'))
 const { ppFetch } = usePartnerPlatform()
 
-// Standalone media URLs are API-origin-relative — resolve against apiBase; absolute
-// URLs pass through untouched.
+// Guard against double-prefixing: ppFetch's resolveMediaUrls already resolves
+// backend-relative media paths against apiBase, so only a raw, unresolved
+// '/partner-platform/…' path still needs the prefix here; already-resolved paths
+// and absolute S3 URLs pass through untouched.
 const apiPublicBase = useRuntimeConfig().public.apiBase
 function mediaUrl(u: string | null | undefined): string {
   if (!u) return ''
-  return u.startsWith('/') ? apiPublicBase + u : u
+  return u.startsWith('/partner-platform/') ? apiPublicBase + u : u
 }
 
 const state = ref<'loading' | 'ready' | 'error'>('loading')
@@ -69,8 +71,10 @@ const damageWriteOff = ref(false)
 const damageNote = ref('')
 const damageResult = ref<DamageResult | null>(null)
 
-// rent-to-own modal
-const rtoPurchaseCents = ref<number | null>(null)
+// rent-to-own modal — both price tiers are previewed (the backend charges the tier
+// fixed by the customer's original reservation, mirroring the reservations complete modal)
+const rtoRegularCents = ref<number | null>(null)
+const rtoMemberCents = ref<number | null>(null)
 const rtoResult = ref<RtoResult | null>(null)
 
 function formatDate(iso: string | null | undefined): string {
@@ -138,7 +142,8 @@ function openModal(kind: 'return' | 'damage' | 'rto', r: PartnerRental) {
     damageNote.value = ''
   }
   if (kind === 'rto') {
-    rtoPurchaseCents.value = null
+    rtoRegularCents.value = null
+    rtoMemberCents.value = null
     loadPurchasePrice(r)
   }
   document.body.style.overflow = 'hidden'
@@ -155,15 +160,18 @@ function closeModal(force = false) {
   if (hadResult) load()
 }
 
-// RentalOut's item ref has no prices — the portal item detail does.
+// RentalOut's item ref has no prices — the portal item detail does (both tiers).
 async function loadPurchasePrice(r: PartnerRental) {
   try {
-    const item = await ppFetch<{ purchase_price_cents: number | null }>(
-      `/partner/items/${r.item.hash_id}`,
-    )
-    rtoPurchaseCents.value = item.purchase_price_cents
+    const item = await ppFetch<{
+      purchase_price_cents: number | null
+      member_purchase_price_cents: number | null
+    }>(`/partner/items/${r.item.hash_id}`)
+    rtoRegularCents.value = item.purchase_price_cents
+    rtoMemberCents.value = item.member_purchase_price_cents
   } catch {
-    rtoPurchaseCents.value = null
+    rtoRegularCents.value = null
+    rtoMemberCents.value = null
   }
 }
 
@@ -456,11 +464,19 @@ onBeforeUnmount(() => {
         <template v-else>
           <h3 class="pp-modal-title">{{ $t('partnerDashboard.rentals.rtoTitle') }}</h3>
           <p class="pp-prent-modal-copy">{{ $t('partnerDashboard.rentals.rtoExplain') }}</p>
+          <div v-if="rtoRegularCents !== null || rtoMemberCents !== null" class="pp-prent-pricebox">
+            <p class="pp-label">{{ $t('partnerDashboard.rentals.rtoPurchasePrice') }}</p>
+            <div v-if="rtoRegularCents !== null" class="pp-price-row">
+              <span class="pp-price-label">{{ $t('partnerDashboard.reservations.tierRegular') }}</span>
+              <span class="pp-price-regular">{{ ppFormatPrice(rtoRegularCents) }}</span>
+            </div>
+            <div v-if="rtoMemberCents !== null" class="pp-price-row">
+              <span class="pp-price-label">{{ $t('partnerDashboard.reservations.tierMember') }}</span>
+              <span class="pp-price-member">{{ ppFormatPrice(rtoMemberCents) }}</span>
+            </div>
+            <p class="pp-hint">{{ $t('partnerDashboard.rentals.rtoPriceNote') }}</p>
+          </div>
           <ul class="pp-prent-fees">
-            <li v-if="rtoPurchaseCents !== null">
-              <span>{{ $t('partnerDashboard.rentals.rtoPurchasePrice') }}</span>
-              <strong>{{ ppFormatPrice(rtoPurchaseCents) }}</strong>
-            </li>
             <li>
               <span>{{ $t('partnerDashboard.rentals.rtoRentPaid') }}</span>
               <strong>{{ ppFormatPrice(target.order.gross_amount_cents) }}</strong>
@@ -557,6 +573,15 @@ onBeforeUnmount(() => {
 }
 .pp-prent-money {
   max-width: 180px;
+}
+.pp-prent-pricebox {
+  background: var(--pp-bg-light);
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin: 14px 0;
+}
+.pp-prent-pricebox .pp-price-row {
+  margin-bottom: 4px;
 }
 .pp-prent-fees {
   list-style: none;

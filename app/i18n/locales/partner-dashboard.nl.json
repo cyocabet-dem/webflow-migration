@@ -213,6 +213,7 @@
       "rtoTitle": "huurkoop",
       "rtoExplain": "de huurder koopt dit item — al betaalde huur gaat van de prijs af.",
       "rtoPurchasePrice": "verkoopprijs",
+      "rtoPriceNote": "de berekende prijs volgt de oorspronkelijke reservering van de klant: leden betalen de ledenprijs, op basis van hun lidmaatschap op het moment van reserveren.",
       "rtoRentPaid": "tot nu toe betaalde huur (deze verhuur)",
       "rtoNote": "de precieze korting wordt berekend uit alle huur die ze voor dit item hebben betaald — je ziet de definitieve bedragen meteen daarna.",
       "rtoConfirm": "verkopen aan huurder",
