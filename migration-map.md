@@ -344,10 +344,10 @@ Kept current as work lands. ✅ done · 🔄 in progress · ⏳ pending.
 
 ## Partner platform MVP 🔄 (2026-07-12/13, Courtney's request — sanctioned new scope)
 - Branch `claude/partner-platform-mvp-lmc29w` (based on `capacitor-mobile-apps`). The full spec,
-  decision log, and handover manual live in the **demat-platform umbrella repo** under
-  `partner-platform/` (CONTRACT.md = frozen API contract, MANUAL.md = the handover document);
-  the matching backend is a self-contained package there for Edward to mount (never committed to
-  demat-backend directly, per house rule).
+  decision log, and handover manual live in **demat-backend** under `docs/partner-platform/`
+  (CONTRACT.md = frozen API contract, MANUAL.md = the handover document, ROLLOUT.md = go-live
+  checklist); the matching backend is integrated there on the same branch name (sanctioned by
+  Courtney, 2026-07-13 — the "never touch demat-backend" rule was explicitly relaxed).
 - ✅ New surfaces (all real-i18n `$t()` new-scope code, `partner.*`/`partnerDashboard.*`/`partnerAdmin.*`
   namespaces, `.pp-` styles in `9-partner.css` + per-page blocks): partner PDP `/partner-item?id=`,
   `/partners` directory + `/partners/[slug]` storefronts, partner reservation cart (third store,
