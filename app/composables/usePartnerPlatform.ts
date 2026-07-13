@@ -44,6 +44,30 @@ export class PartnerApiError extends Error {
 
 const PROBE_TIMEOUT_MS = 5000
 
+// Media URLs come back backend-relative ('/partner-platform/media/…') from the
+// standalone backend (S3 returns absolute URLs in integrated mode). Browsers resolve
+// relative URLs against the FRONTEND origin, which 404s in dev (the API lives behind
+// the /dev-api proxy) — so every API response is walked once and media paths are
+// prefixed with apiBase. Absolute URLs pass through untouched.
+const MEDIA_PREFIX = '/partner-platform/media/'
+
+function resolveMediaUrls<T>(value: T, apiBase: string): T {
+  if (typeof value === 'string') {
+    return (value.startsWith(MEDIA_PREFIX) ? apiBase + value : value) as T
+  }
+  if (Array.isArray(value)) {
+    return value.map((v) => resolveMediaUrls(v, apiBase)) as T
+  }
+  if (value && typeof value === 'object') {
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      out[k] = resolveMediaUrls(v, apiBase)
+    }
+    return out as T
+  }
+  return value
+}
+
 export function usePartnerPlatform() {
   const enabled = useState<boolean>('pp-enabled', () => false)
   const probed = useState<boolean>('pp-probed', () => false)
@@ -134,7 +158,7 @@ export function usePartnerPlatform() {
       throw new PartnerApiError(res.status, detail)
     }
     if (res.status === 204) return undefined as T
-    return (await res.json()) as T
+    return resolveMediaUrls((await res.json()) as T, config.public.apiBase as string)
   }
 
   /** Resolve roles/card state. Cached; force=true refetches (e.g. after card setup). */
